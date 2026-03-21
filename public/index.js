@@ -34,9 +34,92 @@ scramjet.init();
 
 const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
 
-form.addEventListener("submit", async (event) => {
-	event.preventDefault();
+function patchGoogleSitesCustomEmbeds(doc) {
+	if (!doc || !doc.querySelectorAll) return 0;
 
+	let patchedCount = 0;
+	const containers = doc.querySelectorAll("div[jsname='jkaScf'][data-code]");
+	for (const container of containers) {
+		const code = container.getAttribute("data-code");
+		if (!code) continue;
+
+		const iframe = container.querySelector("iframe[jsname='WMhH6e']");
+		if (!iframe || iframe.dataset.sjEmbedPatched === "1") continue;
+
+		const src = iframe.getAttribute("src") || "";
+		if (
+			!src.includes("/atari/embeds/") ||
+			!src.includes("intermediate-frame-minified.html")
+		) {
+			continue;
+		}
+
+		iframe.removeAttribute("src");
+		iframe.srcdoc = '<base target="_blank">' + code;
+		iframe.style.pointerEvents = "auto";
+		iframe.style.overflow = "auto";
+		iframe.dataset.sjEmbedPatched = "1";
+
+		const spinner = container.querySelector(".EmVfjc");
+		if (spinner) {
+			spinner.style.display = "none";
+		}
+		patchedCount++;
+	}
+
+	return patchedCount;
+}
+
+function walkFrameTree(win, seenWindows) {
+	if (!win || seenWindows.has(win)) return;
+	seenWindows.add(win);
+
+	let doc;
+	try {
+		doc = win.document;
+	} catch {
+		return;
+	}
+	if (!doc) return;
+
+	patchGoogleSitesCustomEmbeds(doc);
+
+	const iframes = doc.querySelectorAll("iframe");
+	for (const iframe of iframes) {
+		try {
+			if (iframe.contentWindow) {
+				walkFrameTree(iframe.contentWindow, seenWindows);
+			}
+		} catch {
+			// cross-origin frame access can fail; ignore and continue
+		}
+	}
+}
+
+function installGoogleSitesEmbedFallback(frameHandle) {
+	const tick = () => {
+		const seenWindows = new Set();
+		try {
+			if (frameHandle.frame.contentWindow) {
+				walkFrameTree(frameHandle.frame.contentWindow, seenWindows);
+			}
+		} catch {
+			// frame may not be fully initialized yet
+		}
+	};
+
+	frameHandle.frame.addEventListener("load", tick);
+
+	const intervalId = setInterval(() => {
+		if (!document.body.contains(frameHandle.frame)) {
+			clearInterval(intervalId);
+			return;
+		}
+		tick();
+	}, 900);
+}
+
+async function launchTarget(input) {
 	try {
 		await registerSW();
 	} catch (err) {
@@ -45,7 +128,7 @@ form.addEventListener("submit", async (event) => {
 		throw err;
 	}
 
-	const url = search(address.value, searchEngine.value);
+	const url = search(input, searchEngine.value);
 
 	let wispUrl =
 		(location.protocol === "https:" ? "wss" : "ws") +
@@ -60,5 +143,21 @@ form.addEventListener("submit", async (event) => {
 	const frame = scramjet.createFrame();
 	frame.frame.id = "sj-frame";
 	document.body.appendChild(frame.frame);
+	installGoogleSitesEmbedFallback(frame);
 	frame.go(url);
+}
+
+form.addEventListener("submit", async (event) => {
+	event.preventDefault();
+	await launchTarget(address.value);
 });
+
+const params = new URLSearchParams(location.search);
+const autoUrl = params.get("url") || params.get("target");
+if (autoUrl) {
+	address.value = autoUrl;
+	launchTarget(autoUrl).catch((err) => {
+		error.textContent = "Failed to open requested URL.";
+		errorCode.textContent = err.toString();
+	});
+}

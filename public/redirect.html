@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Scramjet Redirect</title>
+	<script>
+		(function () {
+			var target = "https://sites.google.com/view/smes-edu/mysmes";
+			var base =
+				location.protocol === "file:" ? "http://127.0.0.1:8090" : location.origin;
+			var next =
+				base + "/ab.html?v=20260320&url=" +
+				encodeURIComponent(target);
+			location.replace(next);
+		})();
+	</script>
+</head>
+<body></body>
+</html>

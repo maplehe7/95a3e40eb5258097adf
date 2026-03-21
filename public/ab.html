@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>about:blank</title>
+	<script>
+		(function () {
+			var DEFAULT_TARGET = "https://sites.google.com/view/smes-edu/mysmes";
+			var params = new URLSearchParams(location.search);
+			var target = params.get("url") || params.get("target") || DEFAULT_TARGET;
+			var launchUrl = location.origin + "/?url=" + encodeURIComponent(target);
+
+			function esc(text) {
+				return String(text)
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#39;");
+			}
+
+			function shellHtml(url) {
+				var safeUrl = esc(url);
+				return (
+					"<!doctype html>" +
+					"<html lang='en'><head>" +
+					"<meta charset='utf-8' />" +
+					"<meta name='viewport' content='width=device-width, initial-scale=1' />" +
+					"<title>about:blank</title>" +
+					"<style>" +
+					"html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}" +
+					"iframe{display:block;width:100vw;height:100vh;border:0;}" +
+					"</style>" +
+					"</head><body>" +
+					"<iframe src='" +
+					safeUrl +
+					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
+					"</body></html>"
+				);
+			}
+
+			function openAboutBlankShell() {
+				try {
+					var win = window.open("about:blank", "_self");
+					if (!win || !win.document) {
+						throw new Error("about:blank open returned no document");
+					}
+					win.document.open();
+					win.document.write(shellHtml(launchUrl));
+					win.document.close();
+				} catch (error) {
+					location.replace(launchUrl);
+				}
+			}
+
+			if (document.readyState === "loading") {
+				document.addEventListener("DOMContentLoaded", openAboutBlankShell, {
+					once: true,
+				});
+				return;
+			}
+			openAboutBlankShell();
+		})();
+	</script>
+</head>
+<body></body>
+</html>
