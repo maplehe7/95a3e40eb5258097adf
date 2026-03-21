@@ -242,8 +242,24 @@
       var forcedBase = params.get("base");
       var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
       var launchUrl = base + "/app.html?url=" + encodeURIComponent(target);
-      var docsDecoyUrl = "https://docs.google.com/";
       var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
+      var decoyProfiles = [
+        {
+          url: "https://smes.myschoolapp.com/app?svcid=edu#login",
+          title: "smes.myschoolapp.com",
+          favicon: "https://www.google.com/s2/favicons?domain=smes.myschoolapp.com&sz=64",
+        },
+        {
+          url: "https://www.smes.org/",
+          title: "www.smes.org",
+          favicon: "https://www.google.com/s2/favicons?domain=www.smes.org&sz=64",
+        },
+        {
+          url: "https://docs.google.com/document/u/0/.",
+          title: "Google Docs",
+          favicon: docsFavicon,
+        },
+      ];
       var fakeHost = "nine5a3e40eb5258097adf.onrender.com";
       var launchDone = false;
       var retryArmed = false;
@@ -358,9 +374,10 @@
         );
       }
 
-      function applyDocsFavicon(doc) {
+      function applyFavicon(doc, faviconUrl) {
         try {
           var d = doc || document;
+          var href = faviconUrl || docsFavicon;
           var rels = ["icon", "shortcut icon"];
           for (var i = 0; i < rels.length; i += 1) {
             var rel = rels[i];
@@ -371,21 +388,27 @@
               d.head.appendChild(link);
             }
             link.setAttribute("type", "image/x-icon");
-            link.setAttribute("href", docsFavicon);
+            link.setAttribute("href", href);
           }
         } catch (error) {
           // ignored
         }
       }
 
+      function pickRandomDecoy() {
+        var index = Math.floor(Math.random() * decoyProfiles.length);
+        return decoyProfiles[index];
+      }
+
       function applyDocsHistoryMask() {
+        var decoy = pickRandomDecoy();
         try {
-          document.title = "Google Docs";
-          applyDocsFavicon(document);
-          document.location.replace(docsDecoyUrl);
+          document.title = decoy.title;
+          applyFavicon(document, decoy.favicon);
+          document.location.replace(decoy.url);
         } catch (error) {
           try {
-            location.replace(docsDecoyUrl);
+            location.replace(decoy.url);
           } catch (fallbackError) {
             // ignored
           }
@@ -397,7 +420,7 @@
           document.open();
           document.write(shellHtml(launchUrl));
           document.close();
-          applyDocsFavicon(document);
+          applyFavicon(document, docsFavicon);
         } catch (error) {
           location.replace(launchUrl);
         }
@@ -446,7 +469,7 @@
           tab.document.open();
           tab.document.write(shellHtml(launchUrl));
           tab.document.close();
-          applyDocsFavicon(tab.document);
+          applyFavicon(tab.document, docsFavicon);
         } catch (error) {
           tab.location.replace(launchUrl);
         }
