@@ -73,15 +73,54 @@ function patchGoogleSitesCustomEmbeds(doc) {
 function patchGoogleSitesUrlEmbeds(doc) {
 	if (!doc || !doc.querySelectorAll) return 0;
 
+	function stretchWholePageEmbed(container, iframe) {
+		const win = doc.defaultView || window;
+		const rect = container.getBoundingClientRect();
+		const viewportHeight = win.innerHeight || 800;
+		const top = Number.isFinite(rect.top) ? Math.max(0, rect.top) : 0;
+		const targetHeight = Math.max(520, viewportHeight - top - 8);
+
+		container.style.position = "relative";
+		container.style.display = "block";
+		container.style.width = "100%";
+		container.style.height = targetHeight + "px";
+		container.style.minHeight = targetHeight + "px";
+		container.style.overflow = "hidden";
+
+		iframe.style.position = "absolute";
+		iframe.style.inset = "0";
+		iframe.style.width = "100%";
+		iframe.style.height = "100%";
+
+		const frameRoot = container.closest(".WIdY2d");
+		if (frameRoot) {
+			frameRoot.style.position = "relative";
+			frameRoot.style.height = targetHeight + "px";
+			frameRoot.style.minHeight = targetHeight + "px";
+
+			const ratioSpacer = frameRoot.querySelector("div[jsname='WXxXjd']");
+			if (ratioSpacer) {
+				ratioSpacer.style.display = "none";
+				ratioSpacer.style.paddingTop = "0";
+				ratioSpacer.style.height = "0";
+			}
+
+			for (const layer of frameRoot.querySelectorAll(".YMEQtf")) {
+				layer.style.height = "100%";
+				layer.style.minHeight = targetHeight + "px";
+			}
+		}
+	}
+
 	let patchedCount = 0;
 	const containers = doc.querySelectorAll(
 		"div[jsname='jkaScf'][data-url]:not([data-code])"
 	);
 	for (const container of containers) {
-		if (container.dataset.sjUrlEmbedPatched === "1") continue;
-
 		const rawUrl = container.getAttribute("data-url");
 		if (!rawUrl) continue;
+		const label = (container.getAttribute("aria-label") || "").toLowerCase();
+		const isWholePageEmbed = label.includes("whole page embed");
 
 		let resolvedUrl;
 		try {
@@ -91,6 +130,21 @@ function patchGoogleSitesUrlEmbeds(doc) {
 		}
 
 		let iframe = container.querySelector("iframe[data-sj-url-embed='1']");
+		if (!iframe && container.dataset.sjUrlEmbedPatched === "1") {
+			// A previous patched iframe was removed/replaced; allow patching again.
+			container.dataset.sjUrlEmbedPatched = "0";
+		}
+
+		if (container.dataset.sjUrlEmbedPatched === "1" && iframe) {
+			if (iframe.getAttribute("src") !== resolvedUrl) {
+				iframe.setAttribute("src", resolvedUrl);
+			}
+			if (isWholePageEmbed) {
+				stretchWholePageEmbed(container, iframe);
+			}
+			continue;
+		}
+
 		if (!iframe) {
 			iframe = doc.createElement("iframe");
 			iframe.dataset.sjUrlEmbed = "1";
@@ -115,10 +169,14 @@ function patchGoogleSitesUrlEmbeds(doc) {
 			iframe.setAttribute("src", resolvedUrl);
 		}
 
-		const rect = container.getBoundingClientRect();
-		if (rect.height < 80) {
-			container.style.minHeight = "80vh";
-			container.style.height = "80vh";
+		if (isWholePageEmbed) {
+			stretchWholePageEmbed(container, iframe);
+		} else {
+			const rect = container.getBoundingClientRect();
+			if (rect.height < 80) {
+				container.style.minHeight = "80vh";
+				container.style.height = "80vh";
+			}
 		}
 
 		container.style.width = "100%";
