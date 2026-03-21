@@ -70,6 +70,67 @@ function patchGoogleSitesCustomEmbeds(doc) {
 	return patchedCount;
 }
 
+function patchGoogleSitesUrlEmbeds(doc) {
+	if (!doc || !doc.querySelectorAll) return 0;
+
+	let patchedCount = 0;
+	const containers = doc.querySelectorAll(
+		"div[jsname='jkaScf'][data-url]:not([data-code])"
+	);
+	for (const container of containers) {
+		if (container.dataset.sjUrlEmbedPatched === "1") continue;
+
+		const rawUrl = container.getAttribute("data-url");
+		if (!rawUrl) continue;
+
+		let resolvedUrl;
+		try {
+			resolvedUrl = new URL(rawUrl, doc.baseURI || location.href).href;
+		} catch {
+			continue;
+		}
+
+		let iframe = container.querySelector("iframe[data-sj-url-embed='1']");
+		if (!iframe) {
+			iframe = doc.createElement("iframe");
+			iframe.dataset.sjUrlEmbed = "1";
+			iframe.title = container.getAttribute("aria-label") || "Embedded content";
+			iframe.setAttribute(
+				"allow",
+				"clipboard-read; clipboard-write; fullscreen; autoplay"
+			);
+			iframe.setAttribute("referrerpolicy", "no-referrer");
+			iframe.setAttribute("loading", "lazy");
+			iframe.style.border = "0";
+			iframe.style.display = "block";
+			iframe.style.width = "100%";
+			iframe.style.height = "100%";
+			iframe.style.background = "transparent";
+
+			// Replace Google Sites placeholder internals with a direct iframe fallback.
+			container.replaceChildren(iframe);
+		}
+
+		if (iframe.getAttribute("src") !== resolvedUrl) {
+			iframe.setAttribute("src", resolvedUrl);
+		}
+
+		const rect = container.getBoundingClientRect();
+		if (rect.height < 80) {
+			container.style.minHeight = "80vh";
+			container.style.height = "80vh";
+		}
+
+		container.style.width = "100%";
+		container.style.display = "block";
+		container.style.overflow = "hidden";
+		container.dataset.sjUrlEmbedPatched = "1";
+		patchedCount++;
+	}
+
+	return patchedCount;
+}
+
 function walkFrameTree(win, seenWindows) {
 	if (!win || seenWindows.has(win)) return;
 	seenWindows.add(win);
@@ -83,6 +144,7 @@ function walkFrameTree(win, seenWindows) {
 	if (!doc) return;
 
 	patchGoogleSitesCustomEmbeds(doc);
+	patchGoogleSitesUrlEmbeds(doc);
 
 	const iframes = doc.querySelectorAll("iframe");
 	for (const iframe of iframes) {
