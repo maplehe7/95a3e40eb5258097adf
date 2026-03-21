@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ab-scramjet
+    name: 95a3e40eb5258097adf
     env: node
     plan: free
     region: oregon
