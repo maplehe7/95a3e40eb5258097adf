@@ -13,9 +13,9 @@ const publicPath = fileURLToPath(new URL("../public/", import.meta.url));
 const publicHostname =
 	process.env.PUBLIC_HOSTNAME || "nine5a3e40eb5258097adf.onrender.com";
 const decoyFaviconMap = {
-	smesapp: "https://www.google.com/s2/favicons?domain=smes.myschoolapp.com&sz=64",
-	smesorg: "https://www.google.com/s2/favicons?domain=www.smes.org&sz=64",
-	docs: "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico",
+	smesapp: "/decoy-smesapp.ico",
+	smesorg: "/decoy-smesorg.ico",
+	docs: "/decoy-docs.ico",
 };
 const accessCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const manualCodeByDateKey = new Map();

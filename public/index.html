@@ -242,19 +242,19 @@
       var forcedBase = params.get("base");
       var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
       var launchUrl = base + "/app.html?url=" + encodeURIComponent(target);
-      var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
+      var docsFavicon = base + "/decoy-docs.ico";
       var decoyProfiles = [
         {
           key: "smesapp",
           url: "https://smes.myschoolapp.com/app?svcid=edu#login",
           title: "smes.myschoolapp.com",
-          favicon: "https://www.google.com/s2/favicons?domain=smes.myschoolapp.com&sz=64",
+          favicon: base + "/decoy-smesapp.ico",
         },
         {
           key: "smesorg",
           url: "https://www.smes.org/",
           title: "www.smes.org",
-          favicon: "https://www.google.com/s2/favicons?domain=www.smes.org&sz=64",
+          favicon: base + "/decoy-smesorg.ico",
         },
         {
           key: "docs",
