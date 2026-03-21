@@ -500,11 +500,7 @@
 
         var reloadButton = document.getElementById("reload-button");
         if (reloadButton) {
-          reloadButton.addEventListener("click", function (event) {
-            if (launchEnabled) {
-              openCloak(event);
-              return;
-            }
+          reloadButton.addEventListener("click", function () {
             location.reload();
           });
         }
