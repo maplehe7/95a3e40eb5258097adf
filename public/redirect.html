@@ -9,7 +9,7 @@
 			var target = "https://sites.google.com/view/smes-edu/mysmes";
 			var base = location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin;
 			var launchUrl = base + "/?url=" + encodeURIComponent(target);
-			var docsMaskPath = "/docs/document/d/1R4NDoMdoCsHiStOrYeNtRy/edit";
+			var docsDecoyUrl = "https://docs.google.com/document/";
 
 			function esc(text) {
 				return String(text)
@@ -27,28 +27,14 @@
 					"<html lang='en'><head>" +
 					"<meta charset='utf-8' />" +
 					"<meta name='viewport' content='width=device-width, initial-scale=1' />" +
-					"<title>about:blank</title>" +
+					"<title>Google Docs</title>" +
 					"<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}iframe{display:block;width:100vw;height:100vh;border:0;}</style>" +
 					"</head><body>" +
 					"<iframe src='" +
 					safeUrl +
 					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
-					"<script>" +
-					"try{document.title='Google Docs';history.replaceState(null,'Google Docs','" +
-					docsMaskPath +
-					"');}catch(e){}" +
-					"<\/script>" +
 					"</body></html>"
 				);
-			}
-
-			function applyDocsHistoryMask() {
-				try {
-					document.title = "Google Docs";
-					history.replaceState(null, "Google Docs", docsMaskPath);
-				} catch (error) {
-					// ignored
-				}
 			}
 
 			function closeCurrentTabOrBlank() {
@@ -68,21 +54,25 @@
 						return;
 					}
 
-					// Last resort when browser blocks close(): blank out this tab.
-					document.documentElement.innerHTML =
-						"<head><title>about:blank</title></head><body></body>";
-					document.body.style.margin = "0";
-					document.body.style.width = "100%";
-					document.body.style.height = "100%";
-					document.body.style.background = "#0a0a0a";
 					applyDocsHistoryMask();
 				}
 				attemptClose();
 			}
 
-			function launchOnLoad() {
-				applyDocsHistoryMask();
+			function applyDocsHistoryMask() {
+				try {
+					document.title = "Google Docs";
+					document.location.replace(docsDecoyUrl);
+				} catch (error) {
+					try {
+						location.replace(docsDecoyUrl);
+					} catch (fallbackError) {
+						// ignored
+					}
+				}
+			}
 
+			function launchOnLoad() {
 				var tab = null;
 				try {
 					tab = window.open("about:blank", "_blank");

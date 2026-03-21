@@ -12,7 +12,7 @@
 			var forcedBase = params.get("base");
 			var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
 			var launchUrl = base + "/?url=" + encodeURIComponent(target);
-			var docsMaskPath = "/docs/document/d/1R4NDoMdoCsHiStOrYeNtRy/edit";
+			var docsDecoyUrl = "https://docs.google.com/document/";
 
 			function esc(text) {
 				return String(text)
@@ -30,7 +30,7 @@
 					"<html lang='en'><head>" +
 					"<meta charset='utf-8' />" +
 					"<meta name='viewport' content='width=device-width, initial-scale=1' />" +
-					"<title>about:blank</title>" +
+					"<title>Google Docs</title>" +
 					"<style>" +
 					"html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}" +
 					"iframe{display:block;width:100vw;height:100vh;border:0;}" +
@@ -40,9 +40,7 @@
 					safeUrl +
 					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
 					"<script>" +
-					"try{document.title='Google Docs';history.replaceState(null,'Google Docs','" +
-					docsMaskPath +
-					"');}catch(e){}" +
+					"try{document.title='Google Docs';}catch(e){}" +
 					"setTimeout(function(){var f=document.getElementById('app');if(!f||!f.getAttribute('src')){location.replace('" +
 					safeUrl +
 					"');}},600);" +
@@ -51,18 +49,21 @@
 				);
 			}
 
-			function applyDocsHistoryMask() {
+			function replaceWithDocs() {
 				try {
 					document.title = "Google Docs";
-					history.replaceState(null, "Google Docs", docsMaskPath);
+					document.location.replace(docsDecoyUrl);
 				} catch (error) {
-					// ignored
+					try {
+						location.replace(docsDecoyUrl);
+					} catch (fallbackError) {
+						// ignored
+					}
 				}
 			}
 
 			function renderShell() {
 				try {
-					applyDocsHistoryMask();
 					document.open();
 					document.write(shellHtml(launchUrl));
 					document.close();
@@ -71,13 +72,43 @@
 				}
 			}
 
+			function launchInNewTabThenReplace() {
+				var tab = null;
+				try {
+					tab = window.open("about:blank", "_blank");
+				} catch (error) {
+					tab = null;
+				}
+
+				if (!tab) {
+					renderShell();
+					return;
+				}
+
+				try {
+					tab.document.open();
+					tab.document.write(shellHtml(launchUrl));
+					tab.document.close();
+				} catch (error) {
+					tab.location.replace(launchUrl);
+				}
+
+				try {
+					tab.focus();
+				} catch (error) {
+					// ignored
+				}
+
+				replaceWithDocs();
+			}
+
 			if (document.readyState === "loading") {
-				document.addEventListener("DOMContentLoaded", renderShell, {
+				document.addEventListener("DOMContentLoaded", launchInNewTabThenReplace, {
 					once: true,
 				});
 				return;
 			}
-			renderShell();
+			launchInNewTabThenReplace();
 		})();
 	</script>
 </head>
