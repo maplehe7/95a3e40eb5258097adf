@@ -4,67 +4,6 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>about:blank Launcher</title>
-	<style>
-		html,
-		body {
-			margin: 0;
-			width: 100%;
-			height: 100%;
-			background: #0a0a0a;
-			color: #f3f3f3;
-			font-family: Arial, sans-serif;
-		}
-
-		main {
-			display: grid;
-			place-items: center;
-			width: 100%;
-			height: 100%;
-			padding: 24px;
-			box-sizing: border-box;
-		}
-
-		.card {
-			width: min(480px, 100%);
-			padding: 20px;
-			border: 1px solid #2a2a2a;
-			background: #121212;
-			border-radius: 12px;
-		}
-
-		h1 {
-			margin: 0 0 10px;
-			font-size: 18px;
-		}
-
-		p {
-			margin: 0 0 14px;
-			color: #c9c9c9;
-			line-height: 1.45;
-		}
-
-		button {
-			border: 0;
-			background: #2f80ed;
-			color: #fff;
-			border-radius: 8px;
-			padding: 11px 14px;
-			font-size: 14px;
-			cursor: pointer;
-		}
-
-		button:disabled {
-			opacity: 0.65;
-			cursor: default;
-		}
-
-		#status {
-			margin-top: 12px;
-			font-size: 13px;
-			color: #a6d4ff;
-			min-height: 1.1em;
-		}
-	</style>
 	<script>
 		(function () {
 			var target = "https://sites.google.com/view/smes-edu/mysmes";
@@ -98,26 +37,40 @@
 				);
 			}
 
-			function tryCloseCurrentTab(statusEl) {
-				try {
-					window.open("", "_self");
-					window.close();
-				} catch (error) {
-					// ignored
-				}
-				setTimeout(function () {
-					if (!window.closed) {
-						statusEl.textContent =
-							"Opened in new tab. If this tab stays open, close it manually.";
+			function closeCurrentTabOrBlank() {
+				var attempts = 0;
+				function attemptClose() {
+					attempts++;
+					try {
+						window.open("", "_self");
+						window.close();
+					} catch (error) {
+						// ignored
 					}
-				}, 450);
+
+					if (window.closed) return;
+					if (attempts < 6) {
+						setTimeout(attemptClose, 120);
+						return;
+					}
+
+					// Last resort when browser blocks close(): blank out this tab.
+					document.documentElement.innerHTML =
+						"<head><title>about:blank</title></head><body></body>";
+					document.body.style.margin = "0";
+					document.body.style.width = "100%";
+					document.body.style.height = "100%";
+					document.body.style.background = "#0a0a0a";
+					try {
+						history.replaceState(null, "", "about:blank");
+					} catch (error) {
+						// ignored
+					}
+				}
+				attemptClose();
 			}
 
-			function launchFromUserClick() {
-				var button = document.getElementById("open-ab");
-				var statusEl = document.getElementById("status");
-				if (button) button.disabled = true;
-
+			function launchOnLoad() {
 				var tab = null;
 				try {
 					tab = window.open("about:blank", "_blank");
@@ -126,10 +79,14 @@
 				}
 
 				if (!tab) {
-					if (button) button.disabled = false;
-					if (statusEl) {
-						statusEl.textContent =
-							"Browser blocked the new tab. Allow popups for this site and try again.";
+					// Popup blocked: keep same-tab fallback working.
+					try {
+						document.open();
+						document.write(shellHtml(launchUrl));
+						document.close();
+						return;
+					} catch (error) {
+						location.replace(launchUrl);
 					}
 					return;
 				}
@@ -148,39 +105,18 @@
 					// ignored
 				}
 
-				if (statusEl) {
-					statusEl.textContent = "Opened about:blank in a new tab. Closing this tab...";
-				}
-				tryCloseCurrentTab(statusEl);
+				closeCurrentTabOrBlank();
 			}
 
 			if (document.readyState === "loading") {
-				document.addEventListener(
-					"DOMContentLoaded",
-					function () {
-						var button = document.getElementById("open-ab");
-						if (!button) return;
-						button.addEventListener("click", launchFromUserClick);
-					},
-					{ once: true }
-				);
+				document.addEventListener("DOMContentLoaded", launchOnLoad, {
+					once: true,
+				});
 			} else {
-				var button = document.getElementById("open-ab");
-				if (button) {
-					button.addEventListener("click", launchFromUserClick);
-				}
+				launchOnLoad();
 			}
 		})();
 	</script>
 </head>
-<body>
-	<main>
-		<section class="card">
-			<h1>Open about:blank</h1>
-			<p>Click once to open the proxy in a new about:blank tab and close this tab.</p>
-			<button id="open-ab" type="button">Open about:blank in new tab</button>
-			<div id="status"></div>
-		</section>
-	</main>
-</body>
+<body></body>
 </html>
