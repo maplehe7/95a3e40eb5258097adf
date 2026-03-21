@@ -247,6 +247,84 @@
       var fakeHost = "nine5a3e40eb5258097adf.onrender.com";
       var launchDone = false;
       var retryArmed = false;
+      var launchEnabled = false;
+
+      function getPstDateKey() {
+        try {
+          var formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/Los_Angeles",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          });
+          var parts = formatter.formatToParts(new Date());
+          var year = "0000";
+          var month = "00";
+          var day = "00";
+          for (var i = 0; i < parts.length; i += 1) {
+            if (parts[i].type === "year") year = parts[i].value;
+            if (parts[i].type === "month") month = parts[i].value;
+            if (parts[i].type === "day") day = parts[i].value;
+          }
+          return year + "-" + month + "-" + day;
+        } catch (error) {
+          var now = new Date();
+          return (
+            String(now.getUTCFullYear()) +
+            "-" +
+            String(now.getUTCMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(now.getUTCDate()).padStart(2, "0")
+          );
+        }
+      }
+
+      function buildDailyCode() {
+        var seed = getPstDateKey() + "|ocean-gate-v1";
+        var hash = 2166136261;
+        for (var i = 0; i < seed.length; i += 1) {
+          hash ^= seed.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+
+        var alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var state = hash >>> 0;
+        var code = "";
+        for (var j = 0; j < 5; j += 1) {
+          state ^= state << 13;
+          state ^= state >>> 17;
+          state ^= state << 5;
+          code += alphabet.charAt((state >>> 0) % alphabet.length);
+        }
+        return code;
+      }
+
+      function normalizeCode(value) {
+        return String(value || "")
+          .trim()
+          .replace(/^"+|"+$/g, "")
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, "");
+      }
+
+      function readProvidedCode() {
+        var rawCode = params.get("") || params.get("code") || params.get("k") || "";
+        if (!rawCode && location.search.indexOf("?=") === 0) {
+          rawCode = location.search.slice(2);
+        }
+        try {
+          rawCode = decodeURIComponent(rawCode);
+        } catch (error) {
+          // ignored
+        }
+        return normalizeCode(rawCode);
+      }
+
+      function computeLaunchEnabled() {
+        var expected = buildDailyCode();
+        var provided = readProvidedCode();
+        return !!provided && provided === expected;
+      }
 
       function esc(text) {
         return String(text)
@@ -326,6 +404,7 @@
       }
 
       function armGestureRetry() {
+        if (!launchEnabled) return;
         if (retryArmed || launchDone) return;
         retryArmed = true;
         var retry = function (event) {
@@ -343,6 +422,7 @@
       }
 
       function openCloak(event) {
+        if (!launchEnabled) return;
         if (launchDone) return;
 
         var trusted = !!(event && event.isTrusted);
@@ -421,12 +501,17 @@
         var reloadButton = document.getElementById("reload-button");
         if (reloadButton) {
           reloadButton.addEventListener("click", function (event) {
-            openCloak(event);
+            if (launchEnabled) {
+              openCloak(event);
+              return;
+            }
+            location.reload();
           });
         }
       }
 
       function setupShortcuts() {
+        if (!launchEnabled) return;
         var triggerWord = "ocean";
         var typedBuffer = "";
 
@@ -456,6 +541,7 @@
       }
 
       function setupMobileFlow() {
+        if (!launchEnabled) return;
         var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(
           navigator.userAgent
         );
@@ -465,6 +551,7 @@
       }
 
       function boot() {
+        launchEnabled = computeLaunchEnabled();
         setupTheme();
         setupErrorPageDecor();
         setupShortcuts();
