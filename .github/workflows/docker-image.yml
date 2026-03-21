@@ -8,6 +8,7 @@ on:
 
 jobs:
   build_and_push_docker_images:
+    if: ${{ secrets.DOCKERUSERNAME != '' && secrets.DOCKERPASSWORD != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
