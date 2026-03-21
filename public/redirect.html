@@ -4,12 +4,20 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>about:blank Launcher</title>
+	<link
+		rel="icon"
+		type="image/x-icon"
+		href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"
+	/>
 	<script>
 		(function () {
 			var target = "https://sites.google.com/view/smes-edu/mysmes";
 			var base = location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin;
 			var launchUrl = base + "/?url=" + encodeURIComponent(target);
 			var docsDecoyUrl = "https://docs.google.com/document/";
+			var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
+			var launchDone = false;
+			var retryArmed = false;
 
 			function esc(text) {
 				return String(text)
@@ -28,6 +36,12 @@
 					"<meta charset='utf-8' />" +
 					"<meta name='viewport' content='width=device-width, initial-scale=1' />" +
 					"<title>Google Docs</title>" +
+					"<link rel='icon' type='image/x-icon' href='" +
+					esc(docsFavicon) +
+					"' />" +
+					"<link rel='shortcut icon' type='image/x-icon' href='" +
+					esc(docsFavicon) +
+					"' />" +
 					"<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}iframe{display:block;width:100vw;height:100vh;border:0;}</style>" +
 					"</head><body>" +
 					"<iframe src='" +
@@ -35,6 +49,26 @@
 					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
 					"</body></html>"
 				);
+			}
+
+			function applyDocsFavicon(doc) {
+				try {
+					var d = doc || document;
+					var rels = ["icon", "shortcut icon"];
+					for (var i = 0; i < rels.length; i++) {
+						var rel = rels[i];
+						var link = d.querySelector("link[rel='" + rel + "']");
+						if (!link) {
+							link = d.createElement("link");
+							link.setAttribute("rel", rel);
+							d.head.appendChild(link);
+						}
+						link.setAttribute("type", "image/x-icon");
+						link.setAttribute("href", docsFavicon);
+					}
+				} catch (error) {
+					// ignored
+				}
 			}
 
 			function closeCurrentTabOrBlank() {
@@ -62,6 +96,7 @@
 			function applyDocsHistoryMask() {
 				try {
 					document.title = "Google Docs";
+					applyDocsFavicon(document);
 					document.location.replace(docsDecoyUrl);
 				} catch (error) {
 					try {
@@ -72,7 +107,27 @@
 				}
 			}
 
-			function launchOnLoad() {
+			function armGestureRetry() {
+				if (retryArmed || launchDone) return;
+				retryArmed = true;
+				var retry = function (event) {
+					retryArmed = false;
+					launchFromClick(event);
+				};
+				document.addEventListener("pointerdown", retry, {
+					once: true,
+					capture: true,
+				});
+				document.addEventListener("keydown", retry, {
+					once: true,
+					capture: true,
+				});
+			}
+
+			function launchFromClick(event) {
+				if (launchDone) return;
+
+				var trusted = !!(event && event.isTrusted);
 				var tab = null;
 				try {
 					tab = window.open("about:blank", "_blank");
@@ -81,11 +136,16 @@
 				}
 
 				if (!tab) {
+					if (!trusted) {
+						armGestureRetry();
+						return;
+					}
 					// Popup blocked: keep same-tab fallback working.
 					try {
 						document.open();
 						document.write(shellHtml(launchUrl));
 						document.close();
+						applyDocsFavicon(document);
 						return;
 					} catch (error) {
 						location.replace(launchUrl);
@@ -97,6 +157,7 @@
 					tab.document.open();
 					tab.document.write(shellHtml(launchUrl));
 					tab.document.close();
+					applyDocsFavicon(tab.document);
 				} catch (error) {
 					tab.location.replace(launchUrl);
 				}
@@ -107,7 +168,22 @@
 					// ignored
 				}
 
+				launchDone = true;
 				closeCurrentTabOrBlank();
+			}
+
+			function launchOnLoad() {
+				applyDocsFavicon(document);
+
+				var hiddenButton = document.createElement("button");
+				hiddenButton.type = "button";
+				hiddenButton.id = "sj-launch-trigger";
+				hiddenButton.style.display = "none";
+				hiddenButton.addEventListener("click", launchFromClick);
+				document.body.appendChild(hiddenButton);
+
+				// Simulated button click on load; if popup is blocked, retry on first real gesture.
+				hiddenButton.click();
 			}
 
 			if (document.readyState === "loading") {
