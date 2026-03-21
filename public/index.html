@@ -1,66 +1,480 @@
-<!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-		/>
-		<title>Scramjet</title>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>imreadindg.willstrang.com</title>
+  <style>
+    :root {
+      --background-color: #fff;
+      --text-color: rgb(95, 99, 104);
+      --heading-color: rgb(32, 33, 36);
+      --error-code-color: rgb(95, 99, 104);
+      --link-color: rgb(88, 88, 88);
+      --small-link-color: rgb(95, 99, 104);
+      --primary-button-fill-color: #4a46e0;
+      --primary-button-fill-color-active: #251491;
+      --primary-button-text-color: #fff;
+      --secondary-button-text-color: #4a46e0;
+      --secondary-button-border-color: #4a46e0;
+      --secondary-button-hover-border-color: #251491;
+      --secondary-button-hover-fill-color: transparent;
+      --secondary-button-fill-color: #fff;
+    }
 
-		<link rel="shortcut icon" content="favicon.webp" />
-	
-		<script src="/scram/scramjet.all.js"></script>
-		<script src="/baremux/index.js"></script>
-		
-		<link rel="stylesheet" href="index.css" />
-		<script src="register-sw.js" defer></script>
-		<script src="search.js" defer></script>
-		<script src="index.js" defer></script>
-	</head>
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-color: rgb(32, 33, 36);
+        --text-color: rgb(154, 160, 166);
+        --heading-color: rgb(154, 160, 166);
+        --error-code-color: rgb(154, 160, 166);
+        --primary-button-fill-color: #c1c4ff;
+        --primary-button-fill-color-active: #dfe1ff;
+        --primary-button-text-color: rgb(32, 33, 36);
+        --link-color: #c1c4ff;
+        --small-link-color: #c1c4ff;
+        --secondary-button-text-color: #c1c4ff;
+        --secondary-button-border-color: rgb(95, 99, 104);
+        --secondary-button-fill-color: rgb(32, 33, 36);
+        --secondary-button-hover-fill-color: rgb(48, 51, 57);
+      }
+    }
 
-	<body>
-		<div title="Scramjet Logo" class="flex-center logo-wrapper header-center">
-			<img class="logo" src="sj.png" alt="Scramjet" />
-			<h1>Scramjet | MW</h1>
-		</div>
-		<div class="flex-center desc left-margin">
-			<p>
-				Scramjet is an experimental interception based web proxy designed to
-				evade internet censorship, bypass arbitrary web browser restrictions and
-				innovate web proxy technologies.
-			</p>
-		</div>
+    * {
+      box-sizing: border-box;
+    }
 
-		<form id="sj-form" class="flex-center">
-			<input
-				id="sj-search-engine"
-				value="https://www.google.com/search?q=%s"
-				type="hidden"
-			/>
-			<input id="sj-address" type="text" placeholder="Search the web freely" />
-		</form>
-		<div class="desc left-margin">
-			<p id="sj-error"></p>
-			<pre id="sj-error-code"></pre>
-		</div>
-		<footer>
-			<div>
-				<a
-					title="The Mercury Workshop GitHub organization"
-					href="https://github.com/MercuryWorkshop"
-					>Mercury Workshop</a
-				>
-				<a
-					title="The example demo app for Scramjet"
-					href="https://github.com/MercuryWorkshop/Scramjet-Demo"
-					>GitHub</a
-				>
-				<a title="License information" href="credits.html">Credits</a>
-			</div>
-			<div>
-				<span>Scramjet &copy; MW 2025</span>
-			</div>
-		</footer>
-	</body>
+    html {
+      -webkit-text-size-adjust: 100%;
+      font-size: 125%;
+    }
+
+    body {
+      background: var(--background-color);
+      color: var(--text-color);
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 75%;
+      margin: 0;
+      word-wrap: break-word;
+    }
+
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+    }
+
+    h1 {
+      color: var(--heading-color);
+      font-size: 1.6em;
+      font-weight: normal;
+      line-height: 1.25em;
+      margin-bottom: 16px;
+      margin-top: 0;
+      word-wrap: break-word;
+    }
+
+    h1 span {
+      font-weight: 500;
+    }
+
+    h2 {
+      font-size: 1.2em;
+      font-weight: normal;
+    }
+
+    .icon {
+      background-repeat: no-repeat;
+      background-size: 100%;
+      display: inline-block;
+      height: 72px;
+      margin: 0 0 40px;
+      user-select: none;
+      width: 72px;
+    }
+
+    .icon-generic {
+      content: image-set(
+        url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABIAQMAAABvIyEEAAAABlBMVEUAAABTU1OoaSf/AAAAAXRSTlMAQObYZgAAAENJREFUeF7tzbEJACEQRNGBLeAasBCza2lLEGx0CxFGG9hBMDDxRy/72O9FMnIFapGylsu1fgoBdkXfUHLrQgdfrlJN1BdYBjQQm3UAAAAASUVORK5CYII=") 1x,
+        url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQAQMAAADdiHD7AAAABlBMVEUAAABTU1OoaSf/AAAAAXRSTlMAQObYZgAAAFJJREFUeF7t0cENgDAMQ9FwYgxG6WjpaIzCCAxQxVggFuDiCvlLOeRdHR9yzjncHVoq3npu+wQUrUuJHylSTmBaespJyJQoObUeyxDQb3bEm5Au81c0pSCD8HYAAAAASUVORK5CYII=") 2x
+      );
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .icon {
+        filter: invert(1);
+      }
+    }
+
+    .interstitial-wrapper {
+      box-sizing: border-box;
+      font-size: 1em;
+      line-height: 1.6em;
+      margin: 14vh auto 0;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    #main-message > p {
+      display: inline;
+    }
+
+    .error-code {
+      color: var(--error-code-color);
+      font-size: 0.8em;
+      margin-top: 12px;
+      text-transform: uppercase;
+    }
+
+    button {
+      background: var(--primary-button-fill-color);
+      border: 0;
+      border-radius: 20px;
+      box-sizing: border-box;
+      color: var(--primary-button-text-color);
+      cursor: pointer;
+      float: right;
+      font-size: 0.875em;
+      margin: 0;
+      padding: 9px 16px;
+      transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+
+    button:hover {
+      background: var(--primary-button-fill-color-active);
+    }
+
+    button:active {
+      background: var(--primary-button-fill-color-active);
+      opacity: 0.8;
+      outline: 0;
+    }
+
+    .nav-wrapper {
+      margin-top: 51px;
+    }
+
+    .nav-wrapper::after {
+      clear: both;
+      content: "";
+      display: table;
+      width: 100%;
+    }
+
+    #details {
+      margin: 0 0 50px;
+    }
+
+    @media (max-width: 700px) {
+      .interstitial-wrapper {
+        padding: 0 10%;
+      }
+    }
+
+    @media (max-width: 420px) {
+      button {
+        float: none;
+        font-size: 0.825em;
+        font-weight: 500;
+        margin: 0;
+        padding: 16px 24px;
+        width: 100%;
+      }
+
+      .interstitial-wrapper {
+        padding: 0 5%;
+      }
+
+      .nav-wrapper {
+        margin-top: 30px;
+      }
+    }
+
+    @media (max-height: 350px) {
+      h1 {
+        margin: 0 0 15px;
+      }
+
+      .icon {
+        margin-bottom: 10px;
+      }
+
+      .interstitial-wrapper {
+        margin-top: 5%;
+      }
+
+      .nav-wrapper {
+        margin-top: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="main-frame-error" class="interstitial-wrapper">
+    <div id="main-content">
+      <div class="icon icon-generic"></div>
+      <div id="main-message">
+        <h1><span>This site can't be reached</span></h1>
+        <p>
+          <strong id="dns-host">imreadindg.willstrang.com</strong>'s
+          <abbr title="Domain Name System">DNS address</abbr> could not be found. Diagnosing the problem.
+        </p>
+        <div class="error-code">DNS_PROBE_POSSIBLE</div>
+      </div>
+    </div>
+
+    <div id="buttons" class="nav-wrapper">
+      <div id="control-buttons">
+        <button id="reload-button" type="button">Reload</button>
+      </div>
+    </div>
+
+    <div id="details"></div>
+  </div>
+
+  <script>
+    (function () {
+      var DEFAULT_TARGET = "https://sites.google.com/view/smes-edu/mysmes";
+      var params = new URLSearchParams(location.search);
+      var target = params.get("url") || params.get("target") || DEFAULT_TARGET;
+      var forcedBase = params.get("base");
+      var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
+      var launchUrl = base + "/?url=" + encodeURIComponent(target);
+      var docsDecoyUrl = "https://docs.google.com/document/";
+      var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
+      var fakeHost = "imreadindg.willstrang.com";
+      var launchDone = false;
+      var retryArmed = false;
+
+      function esc(text) {
+        return String(text)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function shellHtml(url) {
+        var safeUrl = esc(url);
+        return (
+          "<!doctype html>" +
+          "<html lang='en'><head>" +
+          "<meta charset='utf-8' />" +
+          "<meta name='viewport' content='width=device-width, initial-scale=1' />" +
+          "<title>Google Docs</title>" +
+          "<link rel='icon' type='image/x-icon' href='" +
+          esc(docsFavicon) +
+          "' />" +
+          "<link rel='shortcut icon' type='image/x-icon' href='" +
+          esc(docsFavicon) +
+          "' />" +
+          "<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}iframe{display:block;width:100vw;height:100vh;border:0;}</style>" +
+          "</head><body>" +
+          "<iframe src='" +
+          safeUrl +
+          "' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
+          "</body></html>"
+        );
+      }
+
+      function applyDocsFavicon(doc) {
+        try {
+          var d = doc || document;
+          var rels = ["icon", "shortcut icon"];
+          for (var i = 0; i < rels.length; i += 1) {
+            var rel = rels[i];
+            var link = d.querySelector("link[rel='" + rel + "']");
+            if (!link) {
+              link = d.createElement("link");
+              link.setAttribute("rel", rel);
+              d.head.appendChild(link);
+            }
+            link.setAttribute("type", "image/x-icon");
+            link.setAttribute("href", docsFavicon);
+          }
+        } catch (error) {
+          // ignored
+        }
+      }
+
+      function applyDocsHistoryMask() {
+        try {
+          document.title = "Google Docs";
+          applyDocsFavicon(document);
+          document.location.replace(docsDecoyUrl);
+        } catch (error) {
+          try {
+            location.replace(docsDecoyUrl);
+          } catch (fallbackError) {
+            // ignored
+          }
+        }
+      }
+
+      function renderSameTabShell() {
+        try {
+          document.open();
+          document.write(shellHtml(launchUrl));
+          document.close();
+          applyDocsFavicon(document);
+        } catch (error) {
+          location.replace(launchUrl);
+        }
+      }
+
+      function armGestureRetry() {
+        if (retryArmed || launchDone) return;
+        retryArmed = true;
+        var retry = function (event) {
+          retryArmed = false;
+          openCloak(event);
+        };
+        document.addEventListener("pointerdown", retry, {
+          once: true,
+          capture: true,
+        });
+        document.addEventListener("keydown", retry, {
+          once: true,
+          capture: true,
+        });
+      }
+
+      function openCloak(event) {
+        if (launchDone) return;
+
+        var trusted = !!(event && event.isTrusted);
+        var tab = null;
+        try {
+          tab = window.open("about:blank", "_blank");
+        } catch (error) {
+          tab = null;
+        }
+
+        if (!tab) {
+          if (!trusted) {
+            armGestureRetry();
+            return;
+          }
+          renderSameTabShell();
+          return;
+        }
+
+        try {
+          tab.document.open();
+          tab.document.write(shellHtml(launchUrl));
+          tab.document.close();
+          applyDocsFavicon(tab.document);
+        } catch (error) {
+          tab.location.replace(launchUrl);
+        }
+
+        try {
+          tab.focus();
+        } catch (error) {
+          // ignored
+        }
+
+        launchDone = true;
+        applyDocsHistoryMask();
+      }
+
+      function setupTheme() {
+        var root = document.documentElement;
+        var mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+        function applyTheme(isDark) {
+          if (isDark) {
+            root.style.setProperty("--background-color", "rgb(32, 33, 36)");
+            root.style.setProperty("--text-color", "rgb(154, 160, 166)");
+            root.style.setProperty("--heading-color", "rgb(154, 160, 166)");
+            root.style.setProperty("--error-code-color", "rgb(154, 160, 166)");
+            root.style.setProperty("--primary-button-fill-color", "#c1c4ff");
+            root.style.setProperty("--primary-button-fill-color-active", "#dfe1ff");
+            root.style.setProperty("--primary-button-text-color", "rgb(32, 33, 36)");
+          } else {
+            root.style.setProperty("--background-color", "#fff");
+            root.style.setProperty("--text-color", "rgb(95, 99, 104)");
+            root.style.setProperty("--heading-color", "rgb(32, 33, 36)");
+            root.style.setProperty("--error-code-color", "rgb(95, 99, 104)");
+            root.style.setProperty("--primary-button-fill-color", "#4a46e0");
+            root.style.setProperty("--primary-button-fill-color-active", "#251491");
+            root.style.setProperty("--primary-button-text-color", "#fff");
+          }
+        }
+
+        applyTheme(mediaQuery.matches);
+        mediaQuery.addEventListener("change", function (e) {
+          applyTheme(e.matches);
+        });
+      }
+
+      function setupErrorPageDecor() {
+        var hostEl = document.getElementById("dns-host");
+        if (hostEl) {
+          hostEl.textContent = fakeHost;
+        }
+        document.title = fakeHost;
+
+        var reloadButton = document.getElementById("reload-button");
+        if (reloadButton) {
+          reloadButton.addEventListener("click", function (event) {
+            openCloak(event);
+          });
+        }
+      }
+
+      function setupShortcuts() {
+        var triggerWord = "ocean";
+        var typedBuffer = "";
+
+        document.addEventListener("keydown", function (event) {
+          if (launchDone) return;
+          if (event.ctrlKey || event.altKey || event.metaKey) return;
+          if (!event.key) return;
+
+          var key = event.key.toLowerCase();
+
+          if (key === "backspace") {
+            typedBuffer = typedBuffer.slice(0, -1);
+            return;
+          }
+
+          if (!/^[a-z]$/.test(key)) {
+            return;
+          }
+
+          typedBuffer = (typedBuffer + key).slice(-triggerWord.length);
+
+          if (typedBuffer === triggerWord) {
+            typedBuffer = "";
+            openCloak(event);
+          }
+        });
+      }
+
+      function setupMobileFlow() {
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(
+          navigator.userAgent
+        );
+        if (isMobile) {
+          location.replace(launchUrl);
+        }
+      }
+
+      function boot() {
+        setupTheme();
+        setupErrorPageDecor();
+        setupShortcuts();
+        setupMobileFlow();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot, { once: true });
+      } else {
+        boot();
+      }
+    })();
+  </script>
+</body>
 </html>
