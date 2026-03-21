@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Google Docs</title>
+  <title>95a3e40eb5258097adf.onrender.com</title>
   <style>
     :root {
       --background-color: #fff;
@@ -240,7 +240,7 @@
       var forcedBase = params.get("base");
       var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
       var launchUrl = base + "/app.html?url=" + encodeURIComponent(target);
-      var docsDecoyUrl = "https://docs.google.com/document/";
+      var docsDecoyUrl = "https://docs.google.com/";
       var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
       var fakeHost = "95a3e40eb5258097adf.onrender.com";
       var launchDone = false;
@@ -414,7 +414,7 @@
         if (hostEl) {
           hostEl.textContent = fakeHost;
         }
-        document.title = "Google Docs";
+        document.title = fakeHost;
 
         var reloadButton = document.getElementById("reload-button");
         if (reloadButton) {
@@ -478,6 +478,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
