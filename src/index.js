@@ -230,6 +230,8 @@ function renderAccessPage(initialState) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Code Control</title>
+  <link rel="icon" href="data:," />
+  <link rel="shortcut icon" href="data:," />
   <style>
     body {
       margin: 0;
@@ -535,10 +537,12 @@ fastify.get("/favicon.ico", (request, reply) => {
 	const faviconUrl = decoyFaviconMap[decoyKey];
 
 	if (!faviconUrl) {
-		return reply.code(204).send();
+		return reply.header("Cache-Control", "no-store, max-age=0").code(204).send();
 	}
 
-	return reply.redirect(302, faviconUrl);
+	return reply
+		.header("Cache-Control", "no-store, max-age=0")
+		.redirect(302, faviconUrl);
 });
 
 fastify.register(fastifyStatic, {

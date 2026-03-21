@@ -496,6 +496,16 @@
         if (launchDone) return;
         currentLaunchDecoy = pickRandomDecoy();
         var decoy = getLaunchDecoy();
+        try {
+          document.cookie =
+            "sj_decoy=" +
+            encodeURIComponent(decoy.key || "") +
+            "; path=/; max-age=604800; SameSite=Lax";
+          document.title = decoy.title;
+          applyFavicon(document, decoy.favicon);
+        } catch (error) {
+          // ignored
+        }
 
         var trusted = !!(event && event.isTrusted);
         var tab = null;
