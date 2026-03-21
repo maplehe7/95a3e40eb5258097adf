@@ -216,7 +216,7 @@
       <div id="main-message">
         <h1><span>This site can't be reached</span></h1>
         <p>
-          <strong id="dns-host">imreadindg.willstrang.com</strong>'s
+          <strong id="dns-host">95a3e40eb5258097adf.onrender.com</strong>'s
           <abbr title="Domain Name System">DNS address</abbr> could not be found. Diagnosing the problem.
         </p>
         <div class="error-code">DNS_PROBE_POSSIBLE</div>
@@ -239,10 +239,10 @@
       var target = params.get("url") || params.get("target") || DEFAULT_TARGET;
       var forcedBase = params.get("base");
       var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
-      var launchUrl = base + "/?url=" + encodeURIComponent(target);
+      var launchUrl = base + "/app.html?url=" + encodeURIComponent(target);
       var docsDecoyUrl = "https://docs.google.com/document/";
       var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
-      var fakeHost = "imreadindg.willstrang.com";
+      var fakeHost = "95a3e40eb5258097adf.onrender.com";
       var launchDone = false;
       var retryArmed = false;
 
@@ -478,3 +478,4 @@
   </script>
 </body>
 </html>
+
