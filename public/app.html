@@ -7,13 +7,14 @@
 			content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
 		/>
 		<title>Google Docs</title>
-  <link rel="icon" type="image/x-icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" />
-  <link rel="shortcut icon" type="image/x-icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" />
+  <link rel="icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" />
+  <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" />
 <script>
 	(function () {
 		var params = new URLSearchParams(location.search);
 		var decoyTitle = params.get("dt");
 		var decoyFavicon = params.get("df");
+		var panicUrl = params.get("dp");
 		try {
 			if (decoyTitle) {
 				document.title = decoyTitle;
@@ -28,9 +29,26 @@
 						link.setAttribute("rel", rel);
 						document.head.appendChild(link);
 					}
-					link.setAttribute("type", "image/x-icon");
 					link.setAttribute("href", decoyFavicon);
 				}
+			}
+
+			if (panicUrl) {
+				window.addEventListener(
+					"keydown",
+					function (event) {
+						if (!event) return;
+						if (event.key !== "\\" && event.code !== "Backslash") return;
+						event.preventDefault();
+						event.stopPropagation();
+						try {
+							(window.top || window).location.replace(panicUrl);
+						} catch (error) {
+							location.replace(panicUrl);
+						}
+					},
+					true
+				);
 			}
 		} catch (error) {
 			// ignored
