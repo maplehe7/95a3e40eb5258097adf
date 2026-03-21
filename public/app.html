@@ -34,6 +34,34 @@
 			}
 
 			if (panicUrl) {
+				function whiteThenGo(url) {
+					var navWin = window.top || window;
+					try {
+						var d = navWin.document;
+						d.documentElement.style.background = "#fff";
+						if (d.body) {
+							d.body.style.background = "#fff";
+						}
+						var cover = d.getElementById("__panic_white__");
+						if (!cover) {
+							cover = d.createElement("div");
+							cover.id = "__panic_white__";
+							cover.style.cssText =
+								"position:fixed;inset:0;background:#fff;z-index:2147483647;";
+							d.documentElement.appendChild(cover);
+						}
+					} catch (error) {
+						// ignored
+					}
+					setTimeout(function () {
+						try {
+							navWin.location.replace(url);
+						} catch (error) {
+							location.replace(url);
+						}
+					}, 20);
+				}
+
 				window.addEventListener(
 					"keydown",
 					function (event) {
@@ -41,11 +69,7 @@
 						if (event.key !== "\\" && event.code !== "Backslash") return;
 						event.preventDefault();
 						event.stopPropagation();
-						try {
-							(window.top || window).location.replace(panicUrl);
-						} catch (error) {
-							location.replace(panicUrl);
-						}
+						whiteThenGo(panicUrl);
 					},
 					true
 				);

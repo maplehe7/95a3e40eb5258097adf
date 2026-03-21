@@ -404,7 +404,7 @@
           "' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
           "<script>(function(){var panic='" +
           panicUrl +
-          "';function isPanicKey(e){return !!e && (e.key==='\\\\' || e.code==='Backslash');}window.addEventListener('keydown',function(e){if(!isPanicKey(e))return;e.preventDefault();e.stopPropagation();location.replace(panic);},true);})();<\/script>" +
+          "';function isPanicKey(e){return !!e && (e.key==='\\\\' || e.code==='Backslash');}function whiteThenGo(){try{var d=document;d.documentElement.style.background='#fff';if(d.body)d.body.style.background='#fff';var c=d.getElementById('__panic_white__');if(!c){c=d.createElement('div');c.id='__panic_white__';c.style.cssText='position:fixed;inset:0;background:#fff;z-index:2147483647;';d.documentElement.appendChild(c);}}catch(_e){}setTimeout(function(){location.replace(panic);},20);}window.addEventListener('keydown',function(e){if(!isPanicKey(e))return;e.preventDefault();e.stopPropagation();whiteThenGo();},true);})();<\/script>" +
           "</body></html>"
         );
       }
