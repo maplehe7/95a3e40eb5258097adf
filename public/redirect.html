@@ -405,6 +405,19 @@
         );
       }
 
+      function buildDecoyLaunchUrl(decoy) {
+        var profile = decoy || { title: "Google Docs", favicon: docsFavicon };
+        var sep = launchUrl.indexOf("?") === -1 ? "?" : "&";
+        return (
+          launchUrl +
+          sep +
+          "dt=" +
+          encodeURIComponent(profile.title || "Google Docs") +
+          "&df=" +
+          encodeURIComponent(profile.favicon || docsFavicon)
+        );
+      }
+
       function applyFavicon(doc, faviconUrl) {
         try {
           var d = doc || document;
@@ -463,13 +476,14 @@
 
       function renderSameTabShell() {
         var decoy = getLaunchDecoy();
+        var decoyLaunchUrl = buildDecoyLaunchUrl(decoy);
         try {
           document.open();
-          document.write(shellHtml(launchUrl, decoy));
+          document.write(shellHtml(decoyLaunchUrl, decoy));
           document.close();
           applyFavicon(document, decoy.favicon || docsFavicon);
         } catch (error) {
-          location.replace(launchUrl);
+          location.replace(decoyLaunchUrl);
         }
       }
 
@@ -496,6 +510,7 @@
         if (launchDone) return;
         currentLaunchDecoy = pickRandomDecoy();
         var decoy = getLaunchDecoy();
+        var decoyLaunchUrl = buildDecoyLaunchUrl(decoy);
         try {
           document.cookie =
             "sj_decoy=" +
@@ -525,12 +540,19 @@
         }
 
         try {
+          tab.document.title = decoy.title;
+          applyFavicon(tab.document, decoy.favicon || docsFavicon);
+        } catch (error) {
+          // ignored
+        }
+
+        try {
           tab.document.open();
-          tab.document.write(shellHtml(launchUrl, decoy));
+          tab.document.write(shellHtml(decoyLaunchUrl, decoy));
           tab.document.close();
           applyFavicon(tab.document, decoy.favicon || docsFavicon);
         } catch (error) {
-          tab.location.replace(launchUrl);
+          tab.location.replace(decoyLaunchUrl);
         }
 
         try {

@@ -9,6 +9,34 @@
 		<title>Google Docs</title>
   <link rel="icon" type="image/x-icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" />
   <link rel="shortcut icon" type="image/x-icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" />
+<script>
+	(function () {
+		var params = new URLSearchParams(location.search);
+		var decoyTitle = params.get("dt");
+		var decoyFavicon = params.get("df");
+		try {
+			if (decoyTitle) {
+				document.title = decoyTitle;
+			}
+			if (decoyFavicon) {
+				var rels = ["icon", "shortcut icon"];
+				for (var i = 0; i < rels.length; i += 1) {
+					var rel = rels[i];
+					var link = document.querySelector("link[rel='" + rel + "']");
+					if (!link) {
+						link = document.createElement("link");
+						link.setAttribute("rel", rel);
+						document.head.appendChild(link);
+					}
+					link.setAttribute("type", "image/x-icon");
+					link.setAttribute("href", decoyFavicon);
+				}
+			}
+		} catch (error) {
+			// ignored
+		}
+	})();
+</script>
 <script src="/scram/scramjet.all.js"></script>
 		<script src="/baremux/index.js"></script>
 		
