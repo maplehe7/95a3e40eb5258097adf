@@ -9,7 +9,9 @@
 			var DEFAULT_TARGET = "https://sites.google.com/view/smes-edu/mysmes";
 			var params = new URLSearchParams(location.search);
 			var target = params.get("url") || params.get("target") || DEFAULT_TARGET;
-			var launchUrl = location.origin + "/?url=" + encodeURIComponent(target);
+			var forcedBase = params.get("base");
+			var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
+			var launchUrl = base + "/?url=" + encodeURIComponent(target);
 
 			function esc(text) {
 				return String(text)
@@ -33,34 +35,36 @@
 					"iframe{display:block;width:100vw;height:100vh;border:0;}" +
 					"</style>" +
 					"</head><body>" +
-					"<iframe src='" +
+					"<iframe id='app' src='" +
 					safeUrl +
 					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
+					"<script>" +
+					"try{history.replaceState(null,'','about:blank');}catch(e){}" +
+					"setTimeout(function(){var f=document.getElementById('app');if(!f||!f.getAttribute('src')){location.replace('" +
+					safeUrl +
+					"');}},600);" +
+					"<\/script>" +
 					"</body></html>"
 				);
 			}
 
-			function openAboutBlankShell() {
+			function renderShell() {
 				try {
-					var win = window.open("about:blank", "_self");
-					if (!win || !win.document) {
-						throw new Error("about:blank open returned no document");
-					}
-					win.document.open();
-					win.document.write(shellHtml(launchUrl));
-					win.document.close();
+					document.open();
+					document.write(shellHtml(launchUrl));
+					document.close();
 				} catch (error) {
 					location.replace(launchUrl);
 				}
 			}
 
 			if (document.readyState === "loading") {
-				document.addEventListener("DOMContentLoaded", openAboutBlankShell, {
+				document.addEventListener("DOMContentLoaded", renderShell, {
 					once: true,
 				});
 				return;
 			}
-			openAboutBlankShell();
+			renderShell();
 		})();
 	</script>
 </head>

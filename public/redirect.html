@@ -7,8 +7,13 @@
 	<script>
 		(function () {
 			var target = "https://sites.google.com/view/smes-edu/mysmes";
-			var base = location.protocol === "file:" ? "http://127.0.0.1:8090" : location.origin;
-			var launcherUrl = base + "/ab.html?url=" + encodeURIComponent(target);
+			var base = location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin;
+			var launcherUrl =
+				base +
+				"/ab.html?url=" +
+				encodeURIComponent(target) +
+				"&base=" +
+				encodeURIComponent(base);
 			location.replace(launcherUrl);
 		})();
 	</script>
