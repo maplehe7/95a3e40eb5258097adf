@@ -245,16 +245,19 @@
       var docsFavicon = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
       var decoyProfiles = [
         {
+          key: "smesapp",
           url: "https://smes.myschoolapp.com/app?svcid=edu#login",
           title: "smes.myschoolapp.com",
           favicon: "https://www.google.com/s2/favicons?domain=smes.myschoolapp.com&sz=64",
         },
         {
+          key: "smesorg",
           url: "https://www.smes.org/",
           title: "www.smes.org",
           favicon: "https://www.google.com/s2/favicons?domain=www.smes.org&sz=64",
         },
         {
+          key: "docs",
           url: "https://docs.google.com/document/u/0/.",
           title: "Google Docs",
           favicon: docsFavicon,
@@ -264,6 +267,7 @@
       var launchDone = false;
       var retryArmed = false;
       var launchEnabled = false;
+      var currentLaunchDecoy = null;
 
       function getPstDateKey() {
         try {
@@ -351,19 +355,22 @@
           .replace(/'/g, "&#39;");
       }
 
-      function shellHtml(url) {
+      function shellHtml(url, decoy) {
         var safeUrl = esc(url);
+        var profile = decoy || { title: "Google Docs", favicon: docsFavicon };
         return (
           "<!doctype html>" +
           "<html lang='en'><head>" +
           "<meta charset='utf-8' />" +
           "<meta name='viewport' content='width=device-width, initial-scale=1' />" +
-          "<title>Google Docs</title>" +
+          "<title>" +
+          esc(profile.title) +
+          "</title>" +
           "<link rel='icon' type='image/x-icon' href='" +
-          esc(docsFavicon) +
+          esc(profile.favicon || docsFavicon) +
           "' />" +
           "<link rel='shortcut icon' type='image/x-icon' href='" +
-          esc(docsFavicon) +
+          esc(profile.favicon || docsFavicon) +
           "' />" +
           "<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}iframe{display:block;width:100vw;height:100vh;border:0;}</style>" +
           "</head><body>" +
@@ -400,8 +407,23 @@
         return decoyProfiles[index];
       }
 
+      function getLaunchDecoy() {
+        if (!currentLaunchDecoy) {
+          currentLaunchDecoy = pickRandomDecoy();
+        }
+        return currentLaunchDecoy;
+      }
+
       function applyDocsHistoryMask() {
-        var decoy = pickRandomDecoy();
+        var decoy = getLaunchDecoy();
+        try {
+          document.cookie =
+            "sj_decoy=" +
+            encodeURIComponent(decoy.key || "") +
+            "; path=/; max-age=604800; SameSite=Lax";
+        } catch (error) {
+          // ignored
+        }
         try {
           document.title = decoy.title;
           applyFavicon(document, decoy.favicon);
@@ -416,11 +438,12 @@
       }
 
       function renderSameTabShell() {
+        var decoy = getLaunchDecoy();
         try {
           document.open();
-          document.write(shellHtml(launchUrl));
+          document.write(shellHtml(launchUrl, decoy));
           document.close();
-          applyFavicon(document, docsFavicon);
+          applyFavicon(document, decoy.favicon || docsFavicon);
         } catch (error) {
           location.replace(launchUrl);
         }
@@ -447,6 +470,8 @@
       function openCloak(event) {
         if (!launchEnabled) return;
         if (launchDone) return;
+        currentLaunchDecoy = pickRandomDecoy();
+        var decoy = getLaunchDecoy();
 
         var trusted = !!(event && event.isTrusted);
         var tab = null;
@@ -467,9 +492,9 @@
 
         try {
           tab.document.open();
-          tab.document.write(shellHtml(launchUrl));
+          tab.document.write(shellHtml(launchUrl, decoy));
           tab.document.close();
-          applyFavicon(tab.document, docsFavicon);
+          applyFavicon(tab.document, decoy.favicon || docsFavicon);
         } catch (error) {
           tab.location.replace(launchUrl);
         }

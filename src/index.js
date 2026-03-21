@@ -12,6 +12,11 @@ import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 const publicPath = fileURLToPath(new URL("../public/", import.meta.url));
 const publicHostname =
 	process.env.PUBLIC_HOSTNAME || "nine5a3e40eb5258097adf.onrender.com";
+const decoyFaviconMap = {
+	smesapp: "https://www.google.com/s2/favicons?domain=smes.myschoolapp.com&sz=64",
+	smesorg: "https://www.google.com/s2/favicons?domain=www.smes.org&sz=64",
+	docs: "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico",
+};
 
 function getPstDateKey() {
 	const formatter = new Intl.DateTimeFormat("en-US", {
@@ -147,6 +152,37 @@ const fastify = Fastify({
 				else socket.end();
 			});
 	},
+});
+
+function parseCookies(headerValue) {
+	const out = {};
+	if (!headerValue) return out;
+
+	const parts = String(headerValue).split(";");
+	for (const part of parts) {
+		const idx = part.indexOf("=");
+		if (idx < 0) continue;
+		const key = part.slice(0, idx).trim();
+		const value = part.slice(idx + 1).trim();
+		try {
+			out[key] = decodeURIComponent(value);
+		} catch {
+			out[key] = value;
+		}
+	}
+	return out;
+}
+
+fastify.get("/favicon.ico", (request, reply) => {
+	const cookies = parseCookies(request.headers.cookie);
+	const decoyKey = cookies.sj_decoy || "";
+	const faviconUrl = decoyFaviconMap[decoyKey];
+
+	if (!faviconUrl) {
+		return reply.code(204).send();
+	}
+
+	return reply.redirect(302, faviconUrl);
 });
 
 fastify.register(fastifyStatic, {
