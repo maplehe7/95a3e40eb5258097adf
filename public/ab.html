@@ -12,6 +12,7 @@
 			var forcedBase = params.get("base");
 			var base = forcedBase || (location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin);
 			var launchUrl = base + "/?url=" + encodeURIComponent(target);
+			var docsMaskPath = "/docs/document/d/1R4NDoMdoCsHiStOrYeNtRy/edit";
 
 			function esc(text) {
 				return String(text)
@@ -39,7 +40,9 @@
 					safeUrl +
 					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
 					"<script>" +
-					"try{history.replaceState(null,'','about:blank');}catch(e){}" +
+					"try{document.title='Google Docs';history.replaceState(null,'Google Docs','" +
+					docsMaskPath +
+					"');}catch(e){}" +
 					"setTimeout(function(){var f=document.getElementById('app');if(!f||!f.getAttribute('src')){location.replace('" +
 					safeUrl +
 					"');}},600);" +
@@ -48,8 +51,18 @@
 				);
 			}
 
+			function applyDocsHistoryMask() {
+				try {
+					document.title = "Google Docs";
+					history.replaceState(null, "Google Docs", docsMaskPath);
+				} catch (error) {
+					// ignored
+				}
+			}
+
 			function renderShell() {
 				try {
+					applyDocsHistoryMask();
 					document.open();
 					document.write(shellHtml(launchUrl));
 					document.close();

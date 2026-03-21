@@ -9,6 +9,7 @@
 			var target = "https://sites.google.com/view/smes-edu/mysmes";
 			var base = location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin;
 			var launchUrl = base + "/?url=" + encodeURIComponent(target);
+			var docsMaskPath = "/docs/document/d/1R4NDoMdoCsHiStOrYeNtRy/edit";
 
 			function esc(text) {
 				return String(text)
@@ -32,9 +33,22 @@
 					"<iframe src='" +
 					safeUrl +
 					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
-					"<script>try{history.replaceState(null,'','about:blank');}catch(e){}<\/script>" +
+					"<script>" +
+					"try{document.title='Google Docs';history.replaceState(null,'Google Docs','" +
+					docsMaskPath +
+					"');}catch(e){}" +
+					"<\/script>" +
 					"</body></html>"
 				);
+			}
+
+			function applyDocsHistoryMask() {
+				try {
+					document.title = "Google Docs";
+					history.replaceState(null, "Google Docs", docsMaskPath);
+				} catch (error) {
+					// ignored
+				}
 			}
 
 			function closeCurrentTabOrBlank() {
@@ -61,16 +75,14 @@
 					document.body.style.width = "100%";
 					document.body.style.height = "100%";
 					document.body.style.background = "#0a0a0a";
-					try {
-						history.replaceState(null, "", "about:blank");
-					} catch (error) {
-						// ignored
-					}
+					applyDocsHistoryMask();
 				}
 				attemptClose();
 			}
 
 			function launchOnLoad() {
+				applyDocsHistoryMask();
+
 				var tab = null;
 				try {
 					tab = window.open("about:blank", "_blank");
