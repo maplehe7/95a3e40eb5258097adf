@@ -340,10 +340,34 @@
         return normalizeCode(rawCode);
       }
 
-      function computeLaunchEnabled() {
-        var expected = buildDailyCode();
+      function computeLaunchEnabled(expectedCode) {
         var provided = readProvidedCode();
-        return !!provided && provided === expected;
+        return !!provided && provided === normalizeCode(expectedCode || "");
+      }
+
+      function fetchExpectedCode() {
+        return fetch("/ctdsc-code", {
+          cache: "no-store",
+          credentials: "same-origin",
+        })
+          .then(function (response) {
+            if (!response.ok) throw new Error("code-fetch-failed");
+            return response.json();
+          })
+          .then(function (payload) {
+            return normalizeCode(payload && payload.code);
+          });
+      }
+
+      function resolveLaunchEnabled() {
+        var fallbackCode = buildDailyCode();
+        return fetchExpectedCode()
+          .then(function (serverCode) {
+            return computeLaunchEnabled(serverCode || fallbackCode);
+          })
+          .catch(function () {
+            return computeLaunchEnabled(fallbackCode);
+          });
       }
 
       function esc(text) {
@@ -595,11 +619,13 @@
       }
 
       function boot() {
-        launchEnabled = computeLaunchEnabled();
         setupTheme();
         setupErrorPageDecor();
-        setupShortcuts();
-        setupMobileFlow();
+        resolveLaunchEnabled().then(function (enabled) {
+          launchEnabled = enabled;
+          setupShortcuts();
+          setupMobileFlow();
+        });
       }
 
       if (document.readyState === "loading") {
