@@ -3,20 +3,184 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Scramjet Redirect</title>
+	<title>about:blank Launcher</title>
+	<style>
+		html,
+		body {
+			margin: 0;
+			width: 100%;
+			height: 100%;
+			background: #0a0a0a;
+			color: #f3f3f3;
+			font-family: Arial, sans-serif;
+		}
+
+		main {
+			display: grid;
+			place-items: center;
+			width: 100%;
+			height: 100%;
+			padding: 24px;
+			box-sizing: border-box;
+		}
+
+		.card {
+			width: min(480px, 100%);
+			padding: 20px;
+			border: 1px solid #2a2a2a;
+			background: #121212;
+			border-radius: 12px;
+		}
+
+		h1 {
+			margin: 0 0 10px;
+			font-size: 18px;
+		}
+
+		p {
+			margin: 0 0 14px;
+			color: #c9c9c9;
+			line-height: 1.45;
+		}
+
+		button {
+			border: 0;
+			background: #2f80ed;
+			color: #fff;
+			border-radius: 8px;
+			padding: 11px 14px;
+			font-size: 14px;
+			cursor: pointer;
+		}
+
+		button:disabled {
+			opacity: 0.65;
+			cursor: default;
+		}
+
+		#status {
+			margin-top: 12px;
+			font-size: 13px;
+			color: #a6d4ff;
+			min-height: 1.1em;
+		}
+	</style>
 	<script>
 		(function () {
 			var target = "https://sites.google.com/view/smes-edu/mysmes";
 			var base = location.protocol === "file:" ? "http://127.0.0.1:8080" : location.origin;
-			var launcherUrl =
-				base +
-				"/ab.html?url=" +
-				encodeURIComponent(target) +
-				"&base=" +
-				encodeURIComponent(base);
-			location.replace(launcherUrl);
+			var launchUrl = base + "/?url=" + encodeURIComponent(target);
+
+			function esc(text) {
+				return String(text)
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")
+					.replace(/"/g, "&quot;")
+					.replace(/'/g, "&#39;");
+			}
+
+			function shellHtml(url) {
+				var safeUrl = esc(url);
+				return (
+					"<!doctype html>" +
+					"<html lang='en'><head>" +
+					"<meta charset='utf-8' />" +
+					"<meta name='viewport' content='width=device-width, initial-scale=1' />" +
+					"<title>about:blank</title>" +
+					"<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0a0a0a;}iframe{display:block;width:100vw;height:100vh;border:0;}</style>" +
+					"</head><body>" +
+					"<iframe src='" +
+					safeUrl +
+					"' allow='clipboard-read; clipboard-write; fullscreen' referrerpolicy='no-referrer'></iframe>" +
+					"<script>try{history.replaceState(null,'','about:blank');}catch(e){}<\/script>" +
+					"</body></html>"
+				);
+			}
+
+			function tryCloseCurrentTab(statusEl) {
+				try {
+					window.open("", "_self");
+					window.close();
+				} catch (error) {
+					// ignored
+				}
+				setTimeout(function () {
+					if (!window.closed) {
+						statusEl.textContent =
+							"Opened in new tab. If this tab stays open, close it manually.";
+					}
+				}, 450);
+			}
+
+			function launchFromUserClick() {
+				var button = document.getElementById("open-ab");
+				var statusEl = document.getElementById("status");
+				if (button) button.disabled = true;
+
+				var tab = null;
+				try {
+					tab = window.open("about:blank", "_blank");
+				} catch (error) {
+					tab = null;
+				}
+
+				if (!tab) {
+					if (button) button.disabled = false;
+					if (statusEl) {
+						statusEl.textContent =
+							"Browser blocked the new tab. Allow popups for this site and try again.";
+					}
+					return;
+				}
+
+				try {
+					tab.document.open();
+					tab.document.write(shellHtml(launchUrl));
+					tab.document.close();
+				} catch (error) {
+					tab.location.replace(launchUrl);
+				}
+
+				try {
+					tab.focus();
+				} catch (error) {
+					// ignored
+				}
+
+				if (statusEl) {
+					statusEl.textContent = "Opened about:blank in a new tab. Closing this tab...";
+				}
+				tryCloseCurrentTab(statusEl);
+			}
+
+			if (document.readyState === "loading") {
+				document.addEventListener(
+					"DOMContentLoaded",
+					function () {
+						var button = document.getElementById("open-ab");
+						if (!button) return;
+						button.addEventListener("click", launchFromUserClick);
+					},
+					{ once: true }
+				);
+			} else {
+				var button = document.getElementById("open-ab");
+				if (button) {
+					button.addEventListener("click", launchFromUserClick);
+				}
+			}
 		})();
 	</script>
 </head>
-<body></body>
+<body>
+	<main>
+		<section class="card">
+			<h1>Open about:blank</h1>
+			<p>Click once to open the proxy in a new about:blank tab and close this tab.</p>
+			<button id="open-ab" type="button">Open about:blank in new tab</button>
+			<div id="status"></div>
+		</section>
+	</main>
+</body>
 </html>
