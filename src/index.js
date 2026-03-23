@@ -207,7 +207,40 @@ function resolvePublicProtocol(request) {
 function buildAccessLink(request, code) {
 	return `${resolvePublicProtocol(request)}://${resolvePublicHost(
 		request
-	)}/?=${encodeURIComponent(code)}`;
+	)}/?k=${encodeURIComponent(code)}`;
+}
+
+function hasSubmittedAccessCode(request) {
+	const query = request.query && typeof request.query === "object" ? request.query : {};
+	if (typeof query.k === "string" && query.k.trim()) {
+		return true;
+	}
+	if (typeof query.code === "string" && query.code.trim()) {
+		return true;
+	}
+	if (typeof query[""] === "string" && query[""].trim()) {
+		return true;
+	}
+
+	const rawUrl = String(request.raw?.url || request.url || "");
+	if (!rawUrl || rawUrl.indexOf("?") === -1) {
+		return false;
+	}
+
+	if (rawUrl.includes("?=") || rawUrl.includes("&=")) {
+		return true;
+	}
+
+	try {
+		const parsed = new URL(rawUrl, "https://placeholder.invalid");
+		return (
+			parsed.searchParams.has("k") ||
+			parsed.searchParams.has("code") ||
+			parsed.searchParams.has("")
+		);
+	} catch {
+		return false;
+	}
 }
 
 function escapeHtml(input) {
@@ -357,7 +390,7 @@ function renderAccessPage(initialState) {
       <div class="linkbox"><a id="fullLink" href="${escapeHtml(
 				initialState.fullLink
 			)}">${escapeHtml(initialState.fullLink)}</a></div>
-      <p class="muted">Use <code>?=CODE</code>, <code>?code=CODE</code>, or <code>?k=CODE</code>.</p>
+      <p class="muted">Daily links use <code>?k=CODE</code>. Legacy <code>?=CODE</code> and <code>?code=CODE</code> still work.</p>
     </div>
   </main>
   <script>
@@ -567,6 +600,25 @@ fastify.register(fastifyStatic, {
 	prefix: "/baremux/",
 	decorateReply: false,
 });
+
+function rootEntryHandler(request, reply) {
+	if (hasSubmittedAccessCode(request)) {
+		return reply
+			.header("Cache-Control", "no-store, max-age=0")
+			.code(200)
+			.type("text/html; charset=utf-8")
+			.sendFile("redirect.html");
+	}
+
+	return reply
+		.header("Cache-Control", "no-store, max-age=0")
+		.code(200)
+		.type("text/html; charset=utf-8")
+		.sendFile("index.html");
+}
+
+fastify.get("/", rootEntryHandler);
+fastify.get("/index.html", rootEntryHandler);
 
 function serializeCodePayload(request) {
 	const info = getActiveAccessCodeInfo();
