@@ -406,6 +406,10 @@ details[open] summary {
   align-items: center;
 }
 
+.brand-logo-container {
+  gap: 10px;
+}
+
 .brand {
   font-size: 21px;
   font-weight: bold;
