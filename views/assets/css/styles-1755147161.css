@@ -2075,10 +2075,6 @@ input[type='text'] {
   margin: 0 auto 30px auto;
 }
 
-.pr-tippy {
-  color: rgb(255, 136, 142);
-}
-
 #settings-panel label {
   display: inline-block;
   margin-inline-end: 20px;

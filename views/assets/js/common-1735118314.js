@@ -814,23 +814,6 @@ const preparePage = async () => {
     }
   };
 
-  if (document.getElementsByClassName('tippy-button').length >= 0)
-    useModule(() => {
-      tippy('.tippy-button', {
-        delay: 50,
-        animateFill: true,
-        placement: 'bottom',
-      });
-    });
-  if (document.getElementsByClassName('pr-tippy').length >= 0)
-    useModule(() => {
-      tippy('.pr-tippy', {
-        delay: 50,
-        animateFill: true,
-        placement: 'bottom',
-      });
-    });
-
   const banner = document.getElementById('banner');
   if (banner) {
     useModule(() => {
