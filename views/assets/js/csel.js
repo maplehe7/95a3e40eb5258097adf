@@ -151,10 +151,12 @@ const storageId = '{{hu-lts}}-storage',
 /* BEGIN WEBSITE SETTINGS */
 
 if (document.getElementById('csel')) {
-  const attachEventListener = (selector, ...args) =>
-      (
-        document.getElementById(selector) || document.querySelector(selector)
-      ).addEventListener(...args),
+  const attachEventListener = (selector, ...args) => {
+      const targetElement =
+        document.getElementById(selector) || document.querySelector(selector);
+      if (!targetElement) return;
+      targetElement.addEventListener(...args);
+    },
     focusElement = document
       .getElementsByClassName('dropdown-settings')[0]
       .parentElement.querySelector("a[href='#']");

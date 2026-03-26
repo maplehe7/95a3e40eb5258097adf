@@ -107,6 +107,7 @@
   };
 
   const initializeScramjet = async () => {
+    if ('function' !== typeof self['$scramjetLoadController']) return;
     try {
       const { ScramjetController } = await $scramjetLoadController();
 
