@@ -393,12 +393,27 @@
           const readStorage = (name) => storageObject()[name];
 
           const searchEngines = Object.freeze({
-            '{{Startpage}}': 'startpage.com/sp/search?query=',
-            '{{Google}}': 'google.com/search?q=',
-            '{{Bing}}': 'bing.com/search?q=',
-            '{{DuckDuckGo}}': 'duckduckgo.com/?q=',
-            '{{Brave}}': 'search.brave.com/search?q=',
-          }),
+              '{{Startpage}}': 'startpage.com/sp/search?query=',
+              '{{Google}}': 'google.com/search?q=',
+              '{{Bing}}': 'bing.com/search?q=',
+              '{{DuckDuckGo}}': 'duckduckgo.com/?q=',
+              '{{Brave}}': 'search.brave.com/search?q=',
+            }),
+            hostAliases = Object.freeze({
+              'whatsmyipaddress.com': 'whatismyipaddress.com',
+              'www.whatsmyipaddress.com': 'www.whatismyipaddress.com',
+            }),
+            normalizeKnownHost = (targetUrl = '') => {
+              try {
+                const parsed = new URL(targetUrl);
+                const mappedHost = hostAliases[parsed.hostname.toLowerCase()];
+                if (mappedHost) {
+                  parsed.hostname = mappedHost;
+                  return parsed + '';
+                }
+              } catch (e) {}
+              return targetUrl;
+            },
           defaultSearch = '{{defaultSearch}}',
           getSearchTemplate = (
             searchEngine =
@@ -406,11 +421,12 @@
           ) => `https://${searchEngine}%s`,
             search = (input) => {
             try {
-              return new URL(input) + '';
+              return normalizeKnownHost(new URL(input) + '');
             } catch (e) {}
             try {
-              const url = new URL(`http://${input}`);
-              if (url.hostname.indexOf('.') !== -1) return url + '';
+              const url = new URL(`https://${input}`);
+              if (url.hostname.indexOf('.') !== -1)
+                return normalizeKnownHost(url + '');
             } catch (e) {}
             return getSearchTemplate().replace('%s', encodeURIComponent(input));
             };
@@ -450,6 +466,62 @@
               const encode = await initScramjetEncoder();
               return location.origin + encode(search(url));
             };
+          const scramPrefixPath = new URL(
+            '{{route}}{{/scram/network/}}',
+            location.origin
+          ).pathname;
+          const asUrl = (value) => {
+            try {
+              return new URL(value, location.origin);
+            } catch (e) {
+              return null;
+            }
+          };
+          const decodeScramjetUrl = (proxyLocation) => {
+            if (!proxyLocation.pathname.startsWith(scramPrefixPath)) return '';
+            const encodedTarget = proxyLocation.pathname.slice(scramPrefixPath.length);
+            if (!encodedTarget) return '';
+            try {
+              const decodedTarget = decodeURIComponent(encodedTarget);
+              return /^https?:\/\//i.test(decodedTarget) ? decodedTarget : '';
+            } catch (e) {
+              return '';
+            }
+          };
+          const decodeUvUrl = (proxyLocation) => {
+            const uvConfig = getUvConfig();
+            if (
+              !uvConfig ||
+              'string' !== typeof uvConfig.prefix ||
+              'function' !== typeof uvConfig.decodeUrl ||
+              !proxyLocation.pathname.startsWith(uvConfig.prefix)
+            )
+              return '';
+            try {
+              const encodedTarget =
+                proxyLocation.pathname.slice(uvConfig.prefix.length) +
+                proxyLocation.search +
+                proxyLocation.hash;
+              const decodedTarget = uvConfig.decodeUrl(encodedTarget);
+              return /^https?:\/\//i.test(decodedTarget) ? decodedTarget : '';
+            } catch (e) {
+              return '';
+            }
+          };
+          const decodeProxyLocation = (proxyLocation, proxyMode) => {
+            if (!proxyLocation || proxyLocation.protocol === 'about:') return '';
+            if (proxyLocation.origin !== location.origin) return proxyLocation.href;
+            if (proxyMode === 'scramjet') return decodeScramjetUrl(proxyLocation);
+            if (proxyMode === 'ultraviolet') return decodeUvUrl(proxyLocation);
+            return '';
+          };
+          const getIframeHref = (iframe) => {
+            try {
+              return iframe.contentWindow.location.href || iframe.src || '';
+            } catch (e) {
+              return iframe.src || '';
+            }
+          };
 
           let rhACDict = { id: 'collectsearchautocompleteresults', dict: '' };
           const RammerheadEncode = async (baseUrl) => {
@@ -634,6 +706,17 @@
 
           const setLoading = (state) => loader.classList.toggle('loader-active', !!state);
           const getActiveTab = () => tabs.find((tab) => tab.id === activeTabId) || null;
+          const syncTabFromFrame = (tab) => {
+            const frameHref = getIframeHref(tab.iframe);
+            if (!frameHref || frameHref === tab.lastFrameHref) return;
+            tab.lastFrameHref = frameHref;
+            const decodedUrl = decodeProxyLocation(asUrl(frameHref), tab.proxy);
+            if (!decodedUrl || decodedUrl === tab.input) return;
+            tab.input = decodedUrl;
+            tab.title = makeTabLabel(decodedUrl);
+            if (tab.id === activeTabId) addressInput.value = decodedUrl;
+            renderTabs();
+          };
 
           const syncToolbar = () => {
             const tab = getActiveTab();
@@ -711,6 +794,7 @@
             setLoading(true);
             try {
               await ensureProxyReady(tab.proxy);
+              tab.lastFrameHref = '';
               tab.iframe.src = await proxify(query, tab.proxy);
             } catch (error) {
               console.error('Beta Browser navigation failed:', error);
@@ -729,9 +813,11 @@
               input: '',
               proxy: initialProxy,
               iframe,
+              lastFrameHref: '',
             };
 
             iframe.addEventListener('load', () => {
+              syncTabFromFrame(tab);
               if (tab.id === activeTabId) setLoading(false);
             });
 
@@ -772,6 +858,7 @@
             const active = getActiveTab();
             if (!active) return;
             try {
+              setLoading(true);
               active.iframe.contentWindow.history.back();
             } catch (e) {}
           });
@@ -780,6 +867,7 @@
             const active = getActiveTab();
             if (!active) return;
             try {
+              setLoading(true);
               active.iframe.contentWindow.history.forward();
             } catch (e) {}
           });
@@ -788,11 +876,18 @@
             const active = getActiveTab();
             if (!active) return;
             try {
+              setLoading(true);
               active.iframe.contentWindow.location.reload();
             } catch (e) {
               if (active.iframe.src) active.iframe.src = active.iframe.src;
             }
           });
+
+          setInterval(() => {
+            const active = getActiveTab();
+            if (!active) return;
+            syncTabFromFrame(active);
+          }, 500);
 
           createTab('https://google.com', 'scramjet');
         };
