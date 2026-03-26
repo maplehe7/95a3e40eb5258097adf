@@ -208,6 +208,7 @@ if (config.disguiseFiles) {
     );
   let exemptDirs = [
       'assets',
+      'archive',
       'uv',
       'scram',
       'epoxy',
