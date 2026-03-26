@@ -2788,3 +2788,216 @@ input[type='text'] {
     font-size: 1.625em;
   }
 }
+
+/* -----------------------------------------------
+/* Turbo UI Refresh (safe global overrides)
+/* ----------------------------------------------- */
+
+:root {
+  --turbo-surface: rgba(28, 34, 45, 0.86);
+  --turbo-surface-soft: rgba(28, 34, 45, 0.66);
+  --turbo-border: rgba(136, 192, 208, 0.22);
+  --turbo-shadow: 0 18px 48px rgba(9, 14, 22, 0.3);
+  --turbo-radius-lg: 18px;
+  --turbo-radius-md: 12px;
+}
+
+.light:root {
+  --turbo-surface: rgba(245, 248, 252, 0.9);
+  --turbo-surface-soft: rgba(245, 248, 252, 0.75);
+  --turbo-border: rgba(67, 76, 94, 0.2);
+  --turbo-shadow: 0 18px 40px rgba(67, 76, 94, 0.14);
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at 12% -12%,
+      rgba(129, 161, 193, 0.22),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 88% -10%,
+      rgba(255, 88, 97, 0.16),
+      transparent 38%
+    ),
+    var(--nord0);
+}
+
+#mainbody {
+  padding: 26px clamp(16px, 3vw, 42px) 70px;
+  box-sizing: border-box;
+}
+
+#header {
+  position: sticky;
+  top: 0;
+  padding: 14px clamp(18px, 3vw, 44px);
+  background: var(--turbo-surface-soft);
+  border-bottom: 1px solid var(--turbo-border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+}
+
+.brand {
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  margin-right: 12px;
+}
+
+.navbar-group {
+  gap: 14px;
+}
+
+.navbar-1 > li {
+  margin-left: 24px;
+}
+
+.navbar-1 > li > a.line {
+  font-weight: 600;
+}
+
+.navbar .dropdown-child {
+  background: var(--turbo-surface);
+  border: 1px solid var(--turbo-border);
+  box-shadow: var(--turbo-shadow);
+}
+
+.box,
+.box-hero,
+.box-main-container,
+.box-card,
+.box-noflex,
+.flist,
+.faq-text > details {
+  background: var(--turbo-surface);
+  border: 1px solid var(--turbo-border);
+  border-radius: var(--turbo-radius-lg);
+  box-shadow: var(--turbo-shadow);
+}
+
+.box-main-container {
+  padding: clamp(20px, 3vw, 40px);
+  gap: clamp(24px, 6vw, 72px);
+  margin: 24px auto 36px;
+}
+
+.box-hero {
+  max-width: min(1200px, 96vw);
+  margin: 20px auto;
+  padding: clamp(18px, 2.5vw, 34px);
+}
+
+.hero-grid-container,
+.grid-container {
+  max-width: min(1300px, 96vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.grid-container {
+  margin-top: 40px;
+  gap: 26px;
+  padding: 0;
+}
+
+.box-card {
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.box-card .content {
+  width: calc(100% - min(30%, 180px) - 20px);
+}
+
+.box-button,
+.homebutton,
+.pr-button,
+.glist > a,
+.mobile-overlay a {
+  border-radius: var(--turbo-radius-md) !important;
+}
+
+.box-button,
+.pr-button,
+.homebutton {
+  border-color: var(--turbo-border) !important;
+  background-color: var(--nord0m2);
+}
+
+.box-button:hover,
+.pr-button:hover,
+.homebutton:hover {
+  background-color: var(--nord0m3);
+}
+
+.search-box input,
+.pr-form input,
+.pr-form select,
+.faq-search,
+#fsearchbar {
+  border-radius: 12px;
+  border: 1px solid var(--turbo-border);
+}
+
+.glist {
+  gap: 12px;
+}
+
+.glist > a {
+  width: 210px;
+  padding: 18px;
+  border: 1px solid var(--turbo-border);
+  background: var(--turbo-surface-soft);
+}
+
+.glist > a img {
+  border-radius: 18px;
+}
+
+@media (max-width: 1160px) {
+  #mainbody {
+    padding: 20px 12px 48px;
+  }
+
+  #header {
+    position: relative;
+    padding: 12px 18px;
+  }
+
+  .box-main-container,
+  .box-hero {
+    padding: 18px;
+  }
+
+  .box-card .content {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand {
+    font-size: 18px;
+  }
+
+  .box-main-container,
+  .box-hero {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .mobile-overlay a {
+    width: 170px;
+  }
+}
