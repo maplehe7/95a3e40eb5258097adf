@@ -1,6 +1,6 @@
 {
-  "short_name": "Holy Unblocker LTS",
-  "name": "Holy Unblocker LTS | Free Web Proxy Service",
+  "short_name": "Turbo",
+  "name": "Turbo | Free Web Proxy Service",
   "icons": [
     {
       "src": "https://holyunblocker.org/assets/img/icon.png",
@@ -48,7 +48,7 @@
   "display": "standalone",
   "theme_color": "#b4213b",
   "background_color": "#1f003e",
-  "description": "Holy Unblocker LTS is a free and secure web proxy service that helps you bypass web filters and access blocked websites. Enjoy anonymous browsing and internet freedom on devices like Chromebooks at school or work.",
+  "description": "Turbo is a free and secure web proxy service that helps you bypass web filters and access blocked websites. Enjoy anonymous browsing and internet freedom on devices like Chromebooks at school or work.",
   "short_description": "Free web proxy service for bypassing filters and accessing blocked sites.",
   "keywords": [
     "proxy",
@@ -60,7 +60,7 @@
     "proxy server",
     "proxy YouTube",
     "bypass web filters",
-    "Holy Unblocker",
+    "Turbo",
     "unblock Chromebook",
     "Titanium Network",
     "fast proxy",

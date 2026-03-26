@@ -200,7 +200,7 @@ if (document.getElementById('csel')) {
       // Allow users to reset the title to default if nothing is entered.
       focusElement.focus();
       removeStorage('Title');
-      pageTitle('Holy Unblocker LTS');
+      pageTitle('Turbo');
     }
   });
 

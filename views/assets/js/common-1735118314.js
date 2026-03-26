@@ -1,7 +1,7 @@
 /* -----------------------------------------------
 /* Authors: QuiteAFancyEmerald, Yoct, and OlyB
 /* GNU Affero General Public License v3.0: https://www.gnu.org/licenses/agpl-3.0.en.html
-/* MAIN Holy Unblocker LTS Common Script
+/* MAIN Turbo Common Script
 /* ----------------------------------------------- */
 
 // Encase everything in a new scope so that variables are not accidentally
