@@ -46,7 +46,7 @@
   },
   {
     "name": "Celeste Pico",
-    "path": "celeste-pico/",
+    "path": "celeste-pico/celeste.html",
     "img": "celeste.webp"
   },
   {
@@ -57,11 +57,6 @@
   {
     "name": "Slope",
     "path": "slope/",
-    "img": "slope.webp"
-  },
-  {
-    "name": "Slope 2",
-    "path": "slope-2/",
     "img": "slope.webp"
   },
   {
@@ -93,11 +88,6 @@
     "name": "Snake",
     "path": "snake/",
     "img": "snake.webp"
-  },
-  {
-    "name": "Half Life 1",
-    "path": "halflife/",
-    "img": "halflife.webp"
   },
   {
     "name": "Super Mario 64",
@@ -243,7 +233,7 @@
   },
   {
     "name": "Quake III Arena",
-    "path": "quake3/",
+    "path": "quake3/Quake3.htm",
     "img": "quake3.webp"
   },
   {

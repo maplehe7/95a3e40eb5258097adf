@@ -3,7 +3,6 @@ node_modules
 .vscode
 .gitattributes
 .well-known
-views/archive
 ngrok.exe
 pnpm-lock.yaml
 debug.log
