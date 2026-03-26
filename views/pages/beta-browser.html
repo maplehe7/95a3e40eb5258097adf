@@ -1,0 +1,664 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{{mask}}{{Turbo | Beta Browser}}</title>
+    {{ifSEO}}{{
+    <meta
+      name="description"
+      content="Turbo Beta Browser is an experimental tabbed browser view powered by HU proxy engines including Scramjet, Ultraviolet, and Rammerhead."
+    />
+    }}
+    <!--HEAD-CONTENT-->
+    <script src="{{route}}{{/scram/scramjet.all.js}}" defer data-module></script>
+    <script src="{{route}}{{/baremux/index.js}}" defer data-module></script>
+    <script src="{{route}}{{/uv/uv.bundle.js}}" defer data-module></script>
+    <script src="{{route}}{{/uv/uv.config.js}}" defer data-module></script>
+    {{inline}}{{
+    <script src="{{route}}{{/assets/js/register-sw.js}}{{inline}}" defer></script>
+    <script src="{{route}}{{assets/js/csel.js}}{{inline}}" defer></script>
+    }}
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .beta-browser-shell {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: var(--nord0);
+      }
+
+      .beta-top {
+        background:
+          radial-gradient(circle at 15% 10%, rgba(129, 161, 193, 0.13), transparent 46%),
+          linear-gradient(180deg, rgba(29, 35, 42, 0.98), rgba(29, 35, 42, 0.96));
+        border-bottom: 1px solid #4c566a66;
+        padding: 8px 10px 10px;
+        box-sizing: border-box;
+      }
+
+      .beta-tabs-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+      }
+
+      #beta-tabs {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .beta-tabs-row::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      .beta-tab {
+        border: 1px solid #4c566a66;
+        background: #323946d1;
+        color: var(--nord4);
+        border-radius: 10px 10px 6px 6px;
+        min-width: 140px;
+        max-width: 210px;
+        padding: 7px 10px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .beta-tab.active {
+        background: #434c5eed;
+        border-color: var(--nord8);
+      }
+
+      .beta-tab-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+      }
+
+      .beta-tab-close {
+        border: none;
+        background: transparent;
+        color: var(--nord4);
+        cursor: pointer;
+        padding: 0 2px;
+        line-height: 1;
+      }
+
+      .beta-tab-close:hover {
+        color: var(--nord17);
+      }
+
+      .beta-new-tab {
+        border: 1px solid #4c566a66;
+        background: #323946d1;
+        color: var(--nord4);
+        border-radius: 8px;
+        width: 34px;
+        height: 34px;
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+
+      .beta-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .beta-logo {
+        flex: 0 0 36px;
+        width: 36px;
+        height: 36px;
+        background-position: center center;
+      }
+
+      .beta-btn,
+      .beta-select {
+        border: 1px solid #4c566a66;
+        background: #323946d1;
+        color: var(--nord4);
+        border-radius: 8px;
+        height: 36px;
+      }
+
+      .beta-btn {
+        min-width: 36px;
+        padding: 0 10px;
+        cursor: pointer;
+      }
+
+      .beta-select {
+        padding: 0 10px;
+      }
+
+      .beta-address-wrap {
+        flex: 1;
+      }
+
+      .beta-address {
+        width: 100%;
+        height: 36px;
+        box-sizing: border-box;
+        border: 1px solid #4c566a66;
+        background: #1d232ae6;
+        color: var(--nord4);
+        border-radius: 8px;
+        padding: 0 12px;
+        font-family: 'Montserrat Alternates', sans-serif;
+        font-size: 14px;
+      }
+
+      .beta-address:focus {
+        outline: none;
+        border-color: var(--nord8);
+      }
+
+      .beta-settings > a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid #4c566a66;
+        border-radius: 8px;
+        background: #323946d1;
+        color: var(--nord4);
+        text-decoration: none;
+      }
+
+      .beta-home {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .beta-views {
+        position: relative;
+        flex: 1;
+        background: #fff;
+      }
+
+      .beta-frame {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: none;
+      }
+
+      .beta-frame.active {
+        display: block;
+      }
+
+      @media (max-width: 900px) {
+        .beta-toolbar {
+          flex-wrap: wrap;
+        }
+
+        .beta-address-wrap {
+          order: 2;
+          flex-basis: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- IMPORTANT-HUCOOKINGINSERT-DONOTDELETE -->
+    <!--ANTI-EXFIL-->
+    <div class="loader loader-active">
+      <div class="loader-w"></div>
+    </div>
+    <div class="beta-browser-shell">
+      <div class="beta-top">
+        <div class="beta-tabs-row">
+          <div id="beta-tabs"></div>
+          <button class="beta-new-tab" id="beta-new-tab" type="button">+</button>
+        </div>
+        <div class="beta-toolbar">
+          <a
+            class="logo beta-logo"
+            href="{{route}}{{/}}"
+            role="img"
+            aria-label="{{mask}}{{Turbo Home}}"
+            title="{{mask}}{{Home}}"
+          ></a>
+          <button class="beta-btn" id="beta-back" type="button" title="{{mask}}{{Back}}">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <button
+            class="beta-btn"
+            id="beta-forward"
+            type="button"
+            title="{{mask}}{{Forward}}"
+          >
+            <i class="fas fa-arrow-right"></i>
+          </button>
+          <button
+            class="beta-btn"
+            id="beta-refresh"
+            type="button"
+            title="{{mask}}{{Refresh}}"
+          >
+            <i class="fas fa-redo-alt"></i>
+          </button>
+          <select class="beta-select" id="beta-proxy">
+            <option value="scramjet">{{mask}}{{Scramjet}}</option>
+            <option value="ultraviolet">{{mask}}{{Ultraviolet}}</option>
+            <option value="rammerhead">{{mask}}{{Rammerhead}}</option>
+          </select>
+          <div class="beta-address-wrap">
+            <input
+              class="beta-address"
+              id="beta-address"
+              type="text"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="{{mask}}{{Type URL or search...}}"
+            />
+          </div>
+          <button class="beta-btn" id="beta-go" type="button">{{mask}}{{Go}}</button>
+          <div class="dropdown-parent beta-settings">
+            <a href="#" tabindex="0" aria-label="{{mask}}{{Settings menu}}">
+              <i class="fas fa-cog"></i>
+            </a>
+            <div
+              class="dropdown-settings"
+              tabindex="0"
+              role="menu"
+              aria-label="{{mask}}{{Settings menu}}"
+            >
+              <div id="csel">
+                <!--SETTINGS-->
+              </div>
+            </div>
+          </div>
+          <a
+            class="beta-btn beta-home"
+            href="{{route}}{{/browsing}}"
+            title="{{mask}}{{Standard Browser Page}}"
+            ><i class="fas fa-globe-americas"></i
+          ></a>
+        </div>
+      </div>
+      <div id="beta-views" class="beta-views"></div>
+    </div>
+    <!-- IMPORTANT-HUCOOKINGINSERT-DONOTDELETE -->
+    <script>
+      (() => {
+        const init = () => {
+          const loader = document.querySelector('.loader');
+          const tabsContainer = document.getElementById('beta-tabs');
+          const viewsContainer = document.getElementById('beta-views');
+          const newTabButton = document.getElementById('beta-new-tab');
+          const backButton = document.getElementById('beta-back');
+          const forwardButton = document.getElementById('beta-forward');
+          const refreshButton = document.getElementById('beta-refresh');
+          const goButton = document.getElementById('beta-go');
+          const addressInput = document.getElementById('beta-address');
+          const proxySelect = document.getElementById('beta-proxy');
+
+          const storageId = '{{hu-lts}}-storage';
+          const storageObject = () => JSON.parse(localStorage.getItem(storageId)) || {};
+          const readStorage = (name) => storageObject()[name];
+
+          const searchEngines = Object.freeze({
+            '{{Startpage}}': 'startpage.com/sp/search?query=',
+            '{{Google}}': 'google.com/search?q=',
+            '{{Bing}}': 'bing.com/search?q=',
+            '{{DuckDuckGo}}': 'duckduckgo.com/?q=',
+            '{{Brave}}': 'search.brave.com/search?q=',
+          }),
+          defaultSearch = '{{defaultSearch}}',
+          getSearchTemplate = (
+            searchEngine =
+              searchEngines[readStorage('SearchEngine')] || searchEngines[defaultSearch]
+          ) => `https://${searchEngine}%s`,
+            search = (input) => {
+            try {
+              return new URL(input) + '';
+            } catch (e) {}
+            try {
+              const url = new URL(`http://${input}`);
+              if (url.hostname.indexOf('.') !== -1) return url + '';
+            } catch (e) {}
+            return getSearchTemplate().replace('%s', encodeURIComponent(input));
+            };
+
+          const uvConfig = self['{{__uv$config}}'] || {};
+          let sjEncode = null;
+          try {
+            const sjObject = self['$scramjetLoadController'];
+            if (sjObject) {
+              const controller = new (sjObject().ScramjetController)({
+                prefix: '{{route}}{{/scram/network/}}',
+              });
+              sjEncode = controller.encodeUrl.bind(controller);
+            }
+          } catch (e) {}
+
+          const uvUrl = (url) => {
+              try {
+                return location.origin + uvConfig.prefix + uvConfig.encodeUrl(search(url));
+              } catch (e) {
+                return search(url);
+              }
+            },
+            sjUrl = (url) => {
+              try {
+                return location.origin + sjEncode(search(url));
+              } catch (e) {
+                return search(url);
+              }
+            };
+
+          let rhACDict = { id: 'collectsearchautocompleteresults', dict: '' };
+          const RammerheadEncode = async (baseUrl) => {
+            const mod = (n, m) => ((n % m) + m) % m,
+              baseDictionary =
+                '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~-',
+              shuffledIndicator = '_rhs',
+              generateDictionary = () => {
+                let str = '';
+                const split = baseDictionary.split('');
+                while (split.length > 0) str += split.splice(Math.random() * split.length, 1)[0];
+                return str;
+              };
+
+            class StrShuffler {
+              constructor(dictionary = generateDictionary()) {
+                this.dictionary = dictionary;
+              }
+              shuffle(str) {
+                if (!str.indexOf(shuffledIndicator)) return str;
+                let shuffledStr = '';
+                for (let i = 0; i < str.length; i++) {
+                  const char = str[i],
+                    idx = baseDictionary.indexOf(char);
+                  if (char === '%' && str.length - i >= 3)
+                    shuffledStr += char + str[++i] + str[++i];
+                  else if (idx === -1) shuffledStr += char;
+                  else
+                    shuffledStr += this.dictionary[mod(idx + i, baseDictionary.length)];
+                }
+                return shuffledIndicator + shuffledStr;
+              }
+            }
+
+            const get = (url, callback, shush = false) => {
+                let request = new XMLHttpRequest();
+                request.open('GET', url, true);
+                request.send();
+                request.onerror = () => {
+                  if (!shush) console.log('Cannot communicate with the server');
+                };
+                request.onload = () => {
+                  if (request.status === 200) callback(request.responseText);
+                  else if (!shush)
+                    console.log(
+                      `Unexpected server response to not match "200". Server says "${request.responseText}"`
+                    );
+                };
+              },
+              api = {
+                newsession(callback) {
+                  get('{{route}}{{/newsession}}', callback);
+                },
+                sessionexists(id, callback) {
+                  get('{{route}}{{/sessionexists}}?id=' + encodeURIComponent(id), (res) => {
+                    if (res === 'exists') return callback(true);
+                    if (res === 'not found') return callback(false);
+                    console.log('Unexpected response from server. Received ' + res);
+                  });
+                },
+                shuffleDict(id, callback) {
+                  get('{{route}}{{/api/shuffleDict}}?id=' + encodeURIComponent(id), (res) => {
+                    callback(JSON.parse(res));
+                  });
+                },
+              },
+              getSessionId = (targetUrl) =>
+                new Promise((resolve) => {
+                  const id = localStorage.getItem('session-string');
+                  api.sessionexists(id, (value) => {
+                    if (!value) {
+                      api.newsession((newId) => {
+                        localStorage.setItem('session-string', newId);
+                        resolve(newId);
+                      });
+                    } else resolve(id);
+                  });
+                });
+
+            return getSessionId(baseUrl).then((id) => {
+              if (id === rhACDict.id && rhACDict.dict)
+                return `{{route}}{{/}}${id}/` + new StrShuffler(rhACDict.dict).shuffle(baseUrl);
+              return new Promise((resolve) => {
+                api.shuffleDict(id, (shuffleDict) => {
+                  if (id === rhACDict.id) rhACDict.dict = shuffleDict;
+                  resolve(`{{route}}{{/}}${id}/` + new StrShuffler(shuffleDict).shuffle(baseUrl));
+                });
+              });
+            });
+          };
+
+          const rhUrl = async (url) => location.origin + (await RammerheadEncode(search(url)));
+          const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          const waitForWorker = async (scopeUrl) => {
+            for (let i = 0; i < 20; i++) {
+              const registration = await navigator.serviceWorker.getRegistration(scopeUrl);
+              if (registration && registration.active) return;
+              await Promise.race([navigator.serviceWorker.ready, wait(250)]);
+            }
+          };
+
+          const ensureProxyReady = async (proxyMode) => {
+            if (proxyMode === 'scramjet')
+              await waitForWorker('{{route}}{{/scram/scramjet.sw.js}}');
+            else if (proxyMode === 'ultraviolet')
+              await waitForWorker('{{route}}{{/uv/sw.js}}');
+          };
+
+          const proxify = async (input, proxyMode) => {
+            if (proxyMode === 'ultraviolet') return uvUrl(input);
+            if (proxyMode === 'rammerhead') return await rhUrl(input);
+            return sjUrl(input);
+          };
+
+          const makeTabLabel = (input) => {
+            try {
+              const parsed = new URL(search(input));
+              return (parsed.hostname || '{{mask}}{{New Tab}}').replace(/^www\./, '');
+            } catch (e) {
+              return '{{mask}}{{New Tab}}';
+            }
+          };
+
+          const tabs = [];
+          let activeTabId = null;
+          let tabCounter = 0;
+
+          const setLoading = (state) => loader.classList.toggle('loader-active', !!state);
+          const getActiveTab = () => tabs.find((tab) => tab.id === activeTabId) || null;
+
+          const syncToolbar = () => {
+            const tab = getActiveTab();
+            if (!tab) return;
+            addressInput.value = tab.input || '';
+            proxySelect.value = tab.proxy;
+          };
+
+          const renderTabs = () => {
+            tabsContainer.textContent = '';
+            tabs.forEach((tab) => {
+              const tabButton = document.createElement('button');
+              tabButton.type = 'button';
+              tabButton.className = 'beta-tab' + (tab.id === activeTabId ? ' active' : '');
+              tabButton.title = tab.title;
+
+              const label = document.createElement('span');
+              label.className = 'beta-tab-label';
+              label.textContent = tab.title;
+
+              const closeButton = document.createElement('button');
+              closeButton.type = 'button';
+              closeButton.className = 'beta-tab-close';
+              closeButton.textContent = 'x';
+              closeButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                closeTab(tab.id);
+              });
+
+              tabButton.appendChild(label);
+              tabButton.appendChild(closeButton);
+              tabButton.addEventListener('click', () => activateTab(tab.id));
+              tabsContainer.appendChild(tabButton);
+            });
+          };
+
+          const activateTab = (tabId) => {
+            activeTabId = tabId;
+            tabs.forEach((tab) => {
+              tab.iframe.classList.toggle('active', tab.id === tabId);
+            });
+            renderTabs();
+            syncToolbar();
+          };
+
+          const closeTab = (tabId) => {
+            if (tabs.length === 1) {
+              const onlyTab = tabs[0];
+              onlyTab.input = '';
+              onlyTab.title = '{{mask}}{{New Tab}}';
+              onlyTab.iframe.src = 'about:blank';
+              renderTabs();
+              syncToolbar();
+              return;
+            }
+
+            const index = tabs.findIndex((tab) => tab.id === tabId);
+            if (index === -1) return;
+            const [tab] = tabs.splice(index, 1);
+            tab.iframe.remove();
+
+            if (activeTabId === tabId) {
+              const fallback = tabs[Math.max(0, index - 1)] || tabs[0];
+              activateTab(fallback.id);
+            } else renderTabs();
+          };
+
+          const navigateTab = async (tab, input) => {
+            const query = (input || '').trim();
+            if (!query) return;
+            tab.input = query;
+            tab.title = makeTabLabel(query);
+            if (tab.id === activeTabId) addressInput.value = query;
+            renderTabs();
+            setLoading(true);
+            try {
+              await ensureProxyReady(tab.proxy);
+              tab.iframe.src = await proxify(query, tab.proxy);
+            } catch (error) {
+              console.error('Beta Browser navigation failed:', error);
+              setLoading(false);
+            }
+          };
+
+          const createTab = (initialInput = '', initialProxy = 'scramjet') => {
+            const iframe = document.createElement('iframe');
+            iframe.className = 'beta-frame';
+            iframe.setAttribute('allow', 'fullscreen');
+            const tab = {
+              id: 'beta-tab-' + ++tabCounter,
+              title: '{{mask}}{{New Tab}}',
+              input: '',
+              proxy: initialProxy,
+              iframe,
+            };
+
+            iframe.addEventListener('load', () => {
+              if (tab.id === activeTabId) setLoading(false);
+            });
+
+            viewsContainer.appendChild(iframe);
+            tabs.push(tab);
+            activateTab(tab.id);
+
+            if (initialInput) navigateTab(tab, initialInput);
+            else iframe.src = 'about:blank';
+            return tab;
+          };
+
+          newTabButton.addEventListener('click', () => {
+            const active = getActiveTab();
+            createTab('', active ? active.proxy : 'scramjet');
+          });
+
+          goButton.addEventListener('click', () => {
+            const active = getActiveTab();
+            if (active) navigateTab(active, addressInput.value);
+          });
+
+          addressInput.addEventListener('keydown', (event) => {
+            if (event.code !== 'Enter') return;
+            const active = getActiveTab();
+            if (active) navigateTab(active, addressInput.value);
+          });
+
+          proxySelect.addEventListener('change', () => {
+            const active = getActiveTab();
+            if (!active) return;
+            active.proxy = proxySelect.value;
+            if (active.input) navigateTab(active, active.input);
+            else renderTabs();
+          });
+
+          backButton.addEventListener('click', () => {
+            const active = getActiveTab();
+            if (!active) return;
+            try {
+              active.iframe.contentWindow.history.back();
+            } catch (e) {}
+          });
+
+          forwardButton.addEventListener('click', () => {
+            const active = getActiveTab();
+            if (!active) return;
+            try {
+              active.iframe.contentWindow.history.forward();
+            } catch (e) {}
+          });
+
+          refreshButton.addEventListener('click', () => {
+            const active = getActiveTab();
+            if (!active) return;
+            try {
+              active.iframe.contentWindow.location.reload();
+            } catch (e) {
+              if (active.iframe.src) active.iframe.src = active.iframe.src;
+            }
+          });
+
+          createTab('https://google.com', 'scramjet');
+        };
+
+        if (document.readyState === 'loading')
+          document.addEventListener('DOMContentLoaded', init, { once: true });
+        else init();
+      })();
+    </script>
+  </body>
+</html>

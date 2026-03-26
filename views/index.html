@@ -74,7 +74,7 @@
 
       .turbo-quick-grid {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 14px;
       }
 
@@ -178,6 +178,14 @@
           >
             <i class="fas fa-globe-americas" aria-hidden="true"></i>
             <span>{{mask}}{{Browser}}</span>
+          </a>
+          <a
+            class="turbo-quick-card"
+            href="{{route}}{{/beta-browser}}"
+            aria-label="{{mask}}{{Open Beta Browser}}"
+          >
+            <i class="fab fa-chrome" aria-hidden="true"></i>
+            <span>{{mask}}{{Beta Browser}}</span>
           </a>
           <a
             class="turbo-quick-card"
