@@ -368,31 +368,40 @@
             return getSearchTemplate().replace('%s', encodeURIComponent(input));
             };
 
-          const uvConfig = self['{{__uv$config}}'] || {};
+          const getUvConfig = () => self['{{__uv$config}}'] || {};
           let sjEncode = null;
-          try {
-            const sjObject = self['$scramjetLoadController'];
-            if (sjObject) {
-              const controller = new (sjObject().ScramjetController)({
-                prefix: '{{route}}{{/scram/network/}}',
-              });
-              sjEncode = controller.encodeUrl.bind(controller);
-            }
-          } catch (e) {}
+          const initScramjetEncoder = async () => {
+            if (sjEncode) return sjEncode;
+            const sjLoader = self['$scramjetLoadController'];
+            if ('function' !== typeof sjLoader)
+              throw new Error('Scramjet loader is unavailable');
+            const loaded = await sjLoader();
+            const ScramjetController =
+              loaded && loaded.ScramjetController
+                ? loaded.ScramjetController
+                : null;
+            if (!ScramjetController)
+              throw new Error('Scramjet controller is unavailable');
+            const controller = new ScramjetController({
+              prefix: '{{route}}{{/scram/network/}}',
+            });
+            sjEncode = controller.encodeUrl.bind(controller);
+            return sjEncode;
+          };
 
           const uvUrl = (url) => {
-              try {
-                return location.origin + uvConfig.prefix + uvConfig.encodeUrl(search(url));
-              } catch (e) {
-                return search(url);
-              }
+              const uvConfig = getUvConfig();
+              if (
+                !uvConfig ||
+                'string' !== typeof uvConfig.prefix ||
+                'function' !== typeof uvConfig.encodeUrl
+              )
+                throw new Error('Ultraviolet is unavailable');
+              return location.origin + uvConfig.prefix + uvConfig.encodeUrl(search(url));
             },
-            sjUrl = (url) => {
-              try {
-                return location.origin + sjEncode(search(url));
-              } catch (e) {
-                return search(url);
-              }
+            sjUrl = async (url) => {
+              const encode = await initScramjetEncoder();
+              return location.origin + encode(search(url));
             };
 
           let rhACDict = { id: 'collectsearchautocompleteresults', dict: '' };
@@ -488,25 +497,68 @@
           const rhUrl = async (url) => location.origin + (await RammerheadEncode(search(url)));
           const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+          const waitForCondition = async (condition, tries = 40, delay = 250) => {
+            for (let i = 0; i < tries; i++) {
+              if (condition()) return true;
+              await wait(delay);
+            }
+            return false;
+          };
+
           const waitForWorker = async (scopeUrl) => {
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 40; i++) {
               const registration = await navigator.serviceWorker.getRegistration(scopeUrl);
               if (registration && registration.active) return;
               await Promise.race([navigator.serviceWorker.ready, wait(250)]);
             }
+            throw new Error(`Service worker not ready: ${scopeUrl}`);
           };
 
           const ensureProxyReady = async (proxyMode) => {
-            if (proxyMode === 'scramjet')
+            if (proxyMode === 'scramjet') {
               await waitForWorker('{{route}}{{/scram/scramjet.sw.js}}');
-            else if (proxyMode === 'ultraviolet')
+              const hasLoader = await waitForCondition(
+                () => 'function' === typeof self['$scramjetLoadController']
+              );
+              if (!hasLoader)
+                throw new Error('Scramjet loader did not initialize');
+              await initScramjetEncoder();
+            } else if (proxyMode === 'ultraviolet') {
               await waitForWorker('{{route}}{{/uv/sw.js}}');
+              const hasUvConfig = await waitForCondition(() => {
+                const uvConfig = getUvConfig();
+                return (
+                  uvConfig &&
+                  'string' === typeof uvConfig.prefix &&
+                  'function' === typeof uvConfig.encodeUrl
+                );
+              });
+              if (!hasUvConfig)
+                throw new Error('Ultraviolet config did not initialize');
+            }
           };
 
           const proxify = async (input, proxyMode) => {
             if (proxyMode === 'ultraviolet') return uvUrl(input);
             if (proxyMode === 'rammerhead') return await rhUrl(input);
-            return sjUrl(input);
+            return await sjUrl(input);
+          };
+
+          const escapeHtml = (value = '') =>
+            value.replace(/[&<>"']/g, (char) =>
+              (
+                {
+                  '&': '&amp;',
+                  '<': '&lt;',
+                  '>': '&gt;',
+                  '"': '&quot;',
+                  "'": '&#39;',
+                }[char] || char
+              )
+            );
+
+          const showProxyError = (tab, query, error) => {
+            tab.iframe.srcdoc = `<!doctype html><html><body style="margin:0;background:#111827;color:#e5e7eb;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;box-sizing:border-box;"><div style="max-width:760px;border:1px solid #374151;border-radius:12px;padding:20px;background:#1f2937;"><h2 style="margin:0 0 10px 0;color:#f87171;">Turbo Beta Browser Error</h2><p style="margin:0 0 10px 0;">The selected proxy engine failed to open this URL.</p><p style="margin:0 0 8px 0;"><b>Requested:</b> ${escapeHtml(query)}</p><p style="margin:0 0 14px 0;"><b>Engine:</b> ${escapeHtml(tab.proxy)}</p><p style="margin:0;opacity:0.85;">Try switching engines in the toolbar or opening Settings and toggling transport options.</p><p style="margin:12px 0 0 0;opacity:0.75;font-size:12px;">${escapeHtml((error && error.message) || 'Unknown error')}</p></div></body></html>`;
           };
 
           const makeTabLabel = (input) => {
@@ -604,6 +656,7 @@
               tab.iframe.src = await proxify(query, tab.proxy);
             } catch (error) {
               console.error('Beta Browser navigation failed:', error);
+              showProxyError(tab, query, error);
               setLoading(false);
             }
           };
