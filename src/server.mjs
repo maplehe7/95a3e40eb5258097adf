@@ -26,6 +26,15 @@ console.log(serverUrl);
 logging.set_level(logging.NONE);
 wisp.options.allow_udp_streams = false;
 wisp.options.allow_loopback_ips = true;
+const wireproxySocksAddress = (
+    process.env.WIREPROXY_SOCKS_ADDRESS || '127.0.0.1:1080'
+  ).trim(),
+  wireproxySocksPort = Number.parseInt(
+    wireproxySocksAddress.slice(wireproxySocksAddress.lastIndexOf(':') + 1),
+    10
+  ),
+  wireproxyProxyUrl = `socks5h://${wireproxySocksAddress}`,
+  wireproxyEnabled = !!(process.env.WIREPROXY_WG_CONFIG_BASE64 || '').trim();
 
 // For security reasons only allow these ports. Any additional regional proxies or default sandboxed Tor ports should be added here.
 wisp.options.port_whitelist = [
@@ -33,7 +42,12 @@ wisp.options.port_whitelist = [
   443,
   9050,
   7000,
-  7001
+  7001,
+  ...(Number.isInteger(wireproxySocksPort) &&
+  wireproxySocksPort > 0 &&
+  wireproxySocksPort <= 65535
+    ? [wireproxySocksPort]
+    : [])
 ];
 
 // The server will check for the existence of this file when a shutdown is requested.
@@ -296,6 +310,13 @@ app.get(serverUrl.pathname + 'github/:redirect', (req, reply) => {
   if (req.params.redirect in externalPages.github)
     reply.redirect(externalPages.github[req.params.redirect]);
   else reply.code(404).type(supportedTypes.default).send(preloaded404);
+});
+
+app.get(serverUrl.pathname + 'api/wireproxy', (req, reply) => {
+  reply.type('application/json').send({
+    enabled: wireproxyEnabled,
+    proxy: wireproxyProxyUrl,
+  });
 });
 
 if (serverUrl.pathname === '/')

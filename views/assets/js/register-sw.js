@@ -12,6 +12,7 @@
       '://' +
       location.host +
       '{{route}}{{/wisp/}}',
+    wireproxyApi = '{{route}}{{/api/wireproxy}}',
     proxyUrl = {
       tor: 'socks5h://localhost:9050',
       eu: 'socks5h://localhost:7000',
@@ -30,6 +31,24 @@
 
   Object.freeze(transports);
 
+  const readWireproxyConfig = async () => {
+    try {
+      const response = await fetch(wireproxyApi, { cache: 'no-store' });
+      if (!response.ok) return { enabled: false, proxy: '' };
+      const wireproxyConfig = await response.json();
+      return {
+        enabled: wireproxyConfig && wireproxyConfig.enabled === true,
+        proxy:
+          wireproxyConfig && 'string' === typeof wireproxyConfig.proxy
+            ? wireproxyConfig.proxy
+            : '',
+      };
+    } catch (err) {
+      console.warn('Wireproxy config request failed:', err);
+      return { enabled: false, proxy: '' };
+    }
+  };
+
   const registerSW = async () => {
     if (!navigator.serviceWorker) {
       if (
@@ -43,12 +62,17 @@
 
     // Set the transport mode
     const transportMode =
-      transports[readStorage('Transport')] || transports.default;
+        transports[readStorage('Transport')] || transports.default,
+      wireproxyConfig = await readWireproxyConfig();
+    const selectedProxy = readStorage('UseSocks5');
+    const useWireProxy = readStorage('UseWireProxy') !== false;
     let transportOptions = { wisp: wispUrl };
 
     // Socks5 proxy options
-    if ('string' === typeof readStorage('UseSocks5'))
-      transportOptions.proxy = proxyUrl[readStorage('UseSocks5')];
+    if ('string' === typeof selectedProxy && proxyUrl[selectedProxy])
+      transportOptions.proxy = proxyUrl[selectedProxy];
+    else if (useWireProxy && wireproxyConfig.enabled && wireproxyConfig.proxy)
+      transportOptions.proxy = wireproxyConfig.proxy;
 
     console.log('Using proxy:', transportOptions.proxy);
     console.log('Transport mode:', transportMode);

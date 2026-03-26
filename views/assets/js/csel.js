@@ -445,6 +445,11 @@ if (document.getElementById('csel')) {
       classUpdateHandler(torCheck, 'off')();
   });
 
+  attachClassEventListener('usewireproxy', 'change', (e) => {
+    if (checkBooleanState(e.target) === false) setStorage('UseWireProxy', false);
+    else removeStorage('UseWireProxy');
+  });
+
   /* The Eruda devtools are an alternative to the Chii devtools.
   attachClassEventListener('eruda', 'change', (e) => {
     const enabled = checkBooleanState(e.target) === true;
@@ -517,6 +522,12 @@ useStorageArgs('UseSocks5', (s) => {
     regionList = document.getElementsByClassName('region-list');
   if (s === 'tor') classUpdateHandler(tor, 'on', classEvent(tor, 'change'))();
   else if ('string' === typeof s) classUpdateHandler(regionList, s)();
+});
+
+// Wireproxy is enabled by default. Disable it only if stored as false.
+useStorageArgs('UseWireProxy', (s) => {
+  if (s === false)
+    classUpdateHandler(document.getElementsByClassName('usewireproxy'), 'off')();
 });
 
 /*

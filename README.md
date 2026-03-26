@@ -266,6 +266,16 @@ If you wish to use a custom HTTP/HTTPS/SOCKS5 proxy to route all traffic through
   }
 ```
 
+### Wireproxy Routing (Optional)
+
+When running the Docker image, Wireproxy is automatically started if `WIREPROXY_WG_CONFIG_BASE64` is set.  
+The value should be the base64-encoded contents of a WireGuard configuration file.
+
+- `WIREPROXY_WG_CONFIG_BASE64`: Required to enable Wireproxy startup.
+- `WIREPROXY_SOCKS_ADDRESS`: Optional SOCKS5 bind address (default: `127.0.0.1:1080`).
+
+If enabled, Wireproxy becomes the default SOCKS5 route for web proxies unless users explicitly disable it in settings.
+
 #### Proxy Configuration
 
 The primary location for tweaking any web proxy related settings assigned via the Settings menu is `./views/assets/js/register-sw.js`. Here you can modify the provided transport options set locally via a cookie, swap out SOCKS5 proxies, change Onion routing ports, specify a blacklist, and more.

@@ -8,7 +8,18 @@ LABEL org.opencontainers.image.title="Holy Unblocker LTS" \
       org.opencontainers.image.authors="Holy Unblocker Team" \
       org.opencontainers.image.source="https://github.com/QuiteAFancyEmerald/Holy-Unblocker/"
 
-RUN apk add --no-cache tor bash
+ARG WIREPROXY_VERSION=v1.1.2
+
+RUN apk add --no-cache tor bash curl tar && \
+    arch="$(apk --print-arch)" && \
+    case "$arch" in \
+      x86_64) wireproxy_arch="amd64" ;; \
+      aarch64) wireproxy_arch="arm64" ;; \
+      *) echo "Unsupported architecture for wireproxy: $arch" >&2; exit 1 ;; \
+    esac && \
+    curl -fsSL "https://github.com/windtf/wireproxy/releases/download/${WIREPROXY_VERSION}/wireproxy_linux_${wireproxy_arch}.tar.gz" | \
+      tar -xz -C /usr/local/bin wireproxy && \
+    chmod +x /usr/local/bin/wireproxy
 
 COPY . .
 
