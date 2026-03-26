@@ -1,6 +1,19 @@
 importScripts('{{route}}{{/scram/scramjet.all.js}}');
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker();
+const youtubeBypassDomains = Object.freeze([
+  'youtube.com',
+  'googlevideo.com',
+  'ytimg.com',
+  'ggpht.com',
+  'youtubei.googleapis.com',
+]);
+const shouldBypassYoutubeBlocklist = (domain = '') => {
+  const host = `${domain}`.toLowerCase();
+  return youtubeBypassDomains.some(
+    (allowedHost) => host === allowedHost || host.endsWith('.' + allowedHost)
+  );
+};
 
 //  Get list of blacklisted domains.
 const blacklist = {},
@@ -45,6 +58,8 @@ async function handleRequest(event) {
           )
         ).hostname,
         domainTld = domain.replace(/.+(?=\.\w)/, '');
+      if (shouldBypassYoutubeBlocklist(domain))
+        return scramjet.fetch(event);
 
       // If the domain is in the blacklist, return a 406 response code.
       if (
