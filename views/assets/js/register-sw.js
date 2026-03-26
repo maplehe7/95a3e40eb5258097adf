@@ -27,6 +27,9 @@
     readStorage = (name) => storageObject()[name],
     defaultMode = '{{libcurl}}',
     isYoutubePresetPage = !!document.getElementById('pr-iv'),
+    isBetaBrowserPage = /\/(?:beta-browser|browser-beta)(?:\.ico)?$/i.test(
+      location.pathname
+    ),
     socks5StorageKey = isYoutubePresetPage ? 'UseSocks5Youtube' : 'UseSocks5';
 
   transports.default = transports[defaultMode];
@@ -83,7 +86,11 @@
     await connection.setTransport(transportMode, [transportOptions]);
 
     const registrations = await navigator.serviceWorker.getRegistrations(),
-      usedSW = swRoutes.uv[readStorage('HideAds') !== false ? 1 : 0];
+      useBlacklist =
+        readStorage('HideAds') !== false &&
+        !isYoutubePresetPage &&
+        !isBetaBrowserPage,
+      usedSW = swRoutes.uv[useBlacklist ? 1 : 0];
 
     console.log('Service Worker being registered:', usedSW);
 
@@ -119,8 +126,12 @@
 
       console.log('Initializing ScramjetController');
       scramjet.init();
+      const useBlacklist =
+        readStorage('HideAds') !== false &&
+        !isYoutubePresetPage &&
+        !isBetaBrowserPage;
       navigator.serviceWorker.register(
-        swRoutes.sj[readStorage('HideAds') !== false ? 1 : 0]
+        swRoutes.sj[useBlacklist ? 1 : 0]
       );
     } catch (err) {
       console.error('Scramjet initialization failed:', err);
