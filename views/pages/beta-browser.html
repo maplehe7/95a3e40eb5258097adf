@@ -591,6 +591,17 @@
             return await sjUrl(input);
           };
 
+          const decodeEntities = (value = '') => {
+            const parser = document.createElement('textarea');
+            parser.innerHTML = value;
+            return parser.value;
+          };
+          const defaultNewTabTitle =
+            decodeEntities('{{mask}}{{New Tab}}').replace(
+              /[\u00ad\u200b\u200c\u200d\u2060]/g,
+              ''
+            ) || 'New Tab';
+
           const escapeHtml = (value = '') =>
             value.replace(/[&<>"']/g, (char) =>
               (
@@ -611,9 +622,9 @@
           const makeTabLabel = (input) => {
             try {
               const parsed = new URL(search(input));
-              return (parsed.hostname || '{{mask}}{{New Tab}}').replace(/^www\./, '');
+              return (parsed.hostname || defaultNewTabTitle).replace(/^www\./, '');
             } catch (e) {
-              return '{{mask}}{{New Tab}}';
+              return defaultNewTabTitle;
             }
           };
 
@@ -672,7 +683,7 @@
             if (tabs.length === 1) {
               const onlyTab = tabs[0];
               onlyTab.input = '';
-              onlyTab.title = '{{mask}}{{New Tab}}';
+              onlyTab.title = defaultNewTabTitle;
               onlyTab.iframe.src = 'about:blank';
               renderTabs();
               syncToolbar();
@@ -714,7 +725,7 @@
             iframe.setAttribute('allow', 'fullscreen');
             const tab = {
               id: 'beta-tab-' + ++tabCounter,
-              title: '{{mask}}{{New Tab}}',
+              title: defaultNewTabTitle,
               input: '',
               proxy: initialProxy,
               iframe,
