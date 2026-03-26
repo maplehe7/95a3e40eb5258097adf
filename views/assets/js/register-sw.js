@@ -25,7 +25,9 @@
     storageId = '{{hu-lts}}-storage',
     storageObject = () => JSON.parse(localStorage.getItem(storageId)) || {},
     readStorage = (name) => storageObject()[name],
-    defaultMode = '{{libcurl}}';
+    defaultMode = '{{libcurl}}',
+    isYoutubePresetPage = !!document.getElementById('pr-iv'),
+    socks5StorageKey = isYoutubePresetPage ? 'UseSocks5Youtube' : 'UseSocks5';
 
   transports.default = transports[defaultMode];
 
@@ -64,7 +66,7 @@
     const transportMode =
         transports[readStorage('Transport')] || transports.default,
       wireproxyConfig = await readWireproxyConfig();
-    const selectedProxy = readStorage('UseSocks5');
+    const selectedProxy = readStorage(socks5StorageKey);
     const useWireProxy = readStorage('UseWireProxy') !== false;
     let transportOptions = { wisp: wispUrl };
 

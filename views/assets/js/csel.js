@@ -142,7 +142,9 @@ const storageId = '{{hu-lts}}-storage',
   // Choose the default transport mode, for proxying, based on the browser.
   // Firefox is not supported by epoxy yet, which is why this is implemented.
   defaultMode = '{{libcurl}}',
-  defaultSearch = '{{defaultSearch}}';
+  defaultSearch = '{{defaultSearch}}',
+  isYoutubePresetPage = !!document.getElementById('pr-iv'),
+  socks5StorageKey = isYoutubePresetPage ? 'UseSocks5Youtube' : 'UseSocks5';
 
 // All code in this block is used by menu items that adjust website settings.
 
@@ -414,7 +416,7 @@ if (document.getElementById('csel')) {
       unselectedModes.forEach((e) => {
         e.setAttribute('disabled', 'true');
       });
-      setStorage('UseSocks5', 'tor');
+      setStorage(socks5StorageKey, 'tor');
       classUpdateHandler(document.getElementsByClassName('useonion'), 'on')();
     } else {
       unselectedModes.forEach((e) => {
@@ -423,7 +425,7 @@ if (document.getElementById('csel')) {
 
       // Tor will likely never be enabled by default, so removing the cookie
       // here may be better than setting it to false.
-      removeStorage('UseSocks5');
+      removeStorage(socks5StorageKey);
     }
   });
 
@@ -435,8 +437,8 @@ if (document.getElementById('csel')) {
   attachClassEventListener('region-list', 'change', (e) => {
     const isOff = checkBooleanState(e.target) === false;
     isOff
-      ? removeStorage('UseSocks5')
-      : setStorage('UseSocks5', e.target.value);
+      ? removeStorage(socks5StorageKey)
+      : setStorage(socks5StorageKey, e.target.value);
 
     // TOR cannot be used at the same time as a regional selection.
     // This is because they both run on the socks5 protocol.
@@ -517,7 +519,7 @@ useStorageArgs('HideAds', (s) => {
 });
 
 // TOR is disabled by default. Enable TOR if it was enabled previously.
-useStorageArgs('UseSocks5', (s) => {
+useStorageArgs(socks5StorageKey, (s) => {
   const tor = document.getElementsByClassName('useonion'),
     regionList = document.getElementsByClassName('region-list');
   if (s === 'tor') classUpdateHandler(tor, 'on', classEvent(tor, 'change'))();
