@@ -10,16 +10,6 @@
     }}
     <!--HEAD-CONTENT-->
     <script src="https://unpkg.com/tsparticles@3.8.1/tsparticles.bundle.min.js" defer data-module></script>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/tippy.js@6/dist/backdrop.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/tippy.js@6/animations/shift-away.css"
-    />
-    <script src="https://unpkg.com/@popperjs/core@2" defer data-module></script>
-    <script src="https://unpkg.com/tippy.js@6" defer></script>
     {{inline}}{{
     <script src="{{route}}{{assets/js/csel.js}}{{inline}}" defer></script>
     <script src="{{route}}{{assets/js/common.js}}{{inline}}" defer></script>
@@ -37,10 +27,6 @@
     <div id="mainbody" class="fullwidth">
       <div class="box-main-container">
         <div class="box-text-container">
-          <p class="box-badge">
-            <span class="box-default-badge">Tip</span>{{mask}}{{Turbo
-            LTS features adblock and TOR support!}}
-          </p>
           <h1>
             {{mask}}{{ Turbo sets the standard for fast, secure,
             and highly advanced web proxy services. }}
@@ -58,22 +44,19 @@
           <div class="box-button-container">
             <a
               href="{{route}}{{/scramjet}}"
-              class="box-button tippy-button"
-              data-tippy-content="{{mask}}{{Scramjet [Recommended]: Fast, secure, and frequently updated.}}"
+              class="box-button"
               >{{mask}}{{Scramjet (LATEST)}}</a
             >
             <a
               id="uvtooltip"
               href="{{route}}{{/ultraviolet}}"
-              class="box-button tippy-button"
-              data-tippy-content="{{mask}}{{Ultraviolet [Fallback]: Popular, but use as fallback for CAPTCHA support.}}"
+              class="box-button"
               >{{mask}}{{Ultraviolet}}</a
             >
             <a
               id="rhtooltip"
               href="{{route}}{{/rammerhead}}"
-              class="box-button tippy-button"
-              data-tippy-content="{{mask}}{{Rammerhead [Optional]: Not secure and has many leaks. Use as alternative fallback.}}"
+              class="box-button"
               >{{mask}}{{Rammerhead}}</a
             >
           </div>
@@ -82,12 +65,8 @@
             personal domains and priority feature requests.}} You can donate <a href="{{route}}{{/patreon}}">here</a>.
           </p>
         </div>
-        <div class="box-image-container">
-          <img
-            class="box-pr-logo"
-            src="{{route}}{{/assets/img/browsing_splash.webp}}"
-            alt="{{mask}}{{Turbo Browsing Splash}}"
-          />
+        <div class="box-image-container turbo-visual">
+          <div class="turbo-runner" role="img" aria-label="Turbocharger"></div>
         </div>
       </div>
     </div>

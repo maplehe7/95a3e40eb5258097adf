@@ -70,6 +70,7 @@ see https://raw.githubusercontent.com/arcticicestudio/nord-docs/develop/assets/i
   --dark: #303030;
   --dark2: #22262f;
   --fancy-dark: rgba(46, 52, 64, 0.2);
+  --turbo-runner-img: url('{{route}}{{/assets/img/turbocharger-light.png}}');
 }
 
 :root:not(.light) {
@@ -132,6 +133,7 @@ see https://raw.githubusercontent.com/arcticicestudio/nord-docs/develop/assets/i
   --particles-op-max: 0.3;
   --particles-op-spd: 0.2;
   --particles-sz-spd: 0.3;
+  --turbo-runner-img: url('{{route}}{{/assets/img/turbocharger-dark.png}}');
 }
 
 /* -----------------------------------------------
@@ -1856,6 +1858,54 @@ input[type='text'] {
   margin-left: auto;
 }
 
+.turbo-visual {
+  justify-content: center;
+  min-width: min(320px, 45%);
+}
+
+.turbo-runner {
+  position: relative;
+  width: clamp(180px, 23vw, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0 32%, transparent 33%),
+    radial-gradient(circle at center, rgba(129, 161, 193, 0.24) 0 54%, transparent 55%),
+    linear-gradient(145deg, rgba(67, 76, 94, 0.55), rgba(29, 35, 42, 0.9));
+  border: 1px solid rgba(136, 192, 208, 0.38);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.26),
+    inset 0 0 40px rgba(136, 192, 208, 0.16);
+}
+
+.turbo-runner::before {
+  content: '';
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background-image: var(--turbo-runner-img);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+  animation: turboSpin 1.2s linear infinite;
+}
+
+.turbo-runner::after {
+  content: '';
+  width: 24%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 88, 97, 0.9) 0 30%,
+    rgba(255, 88, 97, 0.18) 65%,
+    transparent 66%
+  );
+  box-shadow: 0 0 26px rgba(255, 88, 97, 0.46);
+}
+
 .box-pr-logo {
   max-width: 100%;
   height: auto;
@@ -2277,6 +2327,12 @@ input[type='text'] {
 .pulse:hover {
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
   transform: scale(1.05) translateZ(0);
+}
+
+@keyframes turboSpin {
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Glowing Button Animation */
