@@ -85,7 +85,7 @@
     "Rammerhead": ["Ra*m*m*e*r*h*e*a*d"]
   },
   "splash": [
-    "{{mask}}{{This version is the public build of the HU LTS project, and it's being worked on via the master branch! Stuff will NOT work!}}"
+    "{{mask}}{{Turbo // Powered by HU}}"
   ],
   "version": ["6.9.3"]
 }
