@@ -216,7 +216,7 @@ if (config.disguiseFiles) {
       'wisp',
       'chii',
     ].map((dir) => getAltPrefix(dir, serverUrl.pathname).slice(1, -1)),
-    exemptPages = ['login', 'test-shutdown', 'favicon.ico'];
+    exemptPages = ['login', 'test-shutdown', 'favicon.ico', 'api/wireproxy'];
   for (const [key, value] of Object.entries(externalPages))
     if ('string' === typeof value) exemptPages.push(key);
     else exemptDirs.push(key);
