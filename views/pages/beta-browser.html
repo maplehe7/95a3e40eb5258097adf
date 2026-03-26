@@ -51,6 +51,8 @@
         display: flex;
         align-items: center;
         gap: 6px;
+        flex: 1 1 auto;
+        min-width: 0;
       }
 
       .beta-tabs-row::-webkit-scrollbar {
@@ -64,6 +66,7 @@
         border-radius: 10px 10px 6px 6px;
         min-width: 140px;
         max-width: 210px;
+        flex: 0 0 auto;
         padding: 7px 10px;
         font-size: 13px;
         display: flex;
@@ -174,6 +177,34 @@
         background: #323946d1;
         color: var(--nord4);
         text-decoration: none;
+      }
+
+      .beta-settings .dropdown-settings {
+        display: none;
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--dropdown-bg, rgba(0, 0, 0, 0.5));
+        backdrop-filter: blur(10px);
+        z-index: 20;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .beta-settings:focus-within .dropdown-settings {
+        display: flex;
+        pointer-events: auto;
+        opacity: 1;
+      }
+
+      .beta-settings .settings-content {
+        width: min(800px, 94vw);
+        max-height: 90vh;
+        margin: 5vh auto;
       }
 
       .beta-home {
