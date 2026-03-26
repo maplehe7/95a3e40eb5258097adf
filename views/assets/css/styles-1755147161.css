@@ -70,7 +70,6 @@ see https://raw.githubusercontent.com/arcticicestudio/nord-docs/develop/assets/i
   --dark: #303030;
   --dark2: #22262f;
   --fancy-dark: rgba(46, 52, 64, 0.2);
-  --turbo-runner-img: url('{{route}}{{/assets/img/turbocharger-light.png}}');
 }
 
 :root:not(.light) {
@@ -133,7 +132,6 @@ see https://raw.githubusercontent.com/arcticicestudio/nord-docs/develop/assets/i
   --particles-op-max: 0.3;
   --particles-op-spd: 0.2;
   --particles-sz-spd: 0.3;
-  --turbo-runner-img: url('{{route}}{{/assets/img/turbocharger-dark.png}}');
 }
 
 /* -----------------------------------------------
@@ -1868,75 +1866,6 @@ input[type='text'] {
   margin-left: auto;
 }
 
-.turbo-visual {
-  justify-content: center;
-  min-width: min(320px, 45%);
-}
-
-.turbo-runner {
-  position: relative;
-  width: clamp(180px, 23vw, 260px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 28% 28%, rgba(236, 239, 244, 0.3) 0 16%, transparent 44%),
-    radial-gradient(circle at 70% 74%, rgba(255, 88, 97, 0.16) 0 24%, transparent 60%),
-    linear-gradient(160deg, rgba(67, 76, 94, 0.68), rgba(20, 27, 38, 0.94));
-  border: 1px solid rgba(136, 192, 208, 0.4);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.3),
-    inset 0 0 46px rgba(136, 192, 208, 0.2),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.04);
-  transform: translateZ(0);
-  animation: turboFloat 3.8s ease-in-out infinite;
-}
-
-.turbo-runner::before {
-  content: '';
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at center, rgba(15, 21, 31, 0.86) 0 32%, transparent 33%),
-    var(--turbo-runner-img) center / 76% no-repeat,
-    repeating-conic-gradient(
-      from 0deg,
-      rgba(136, 192, 208, 0.76) 0deg 16deg,
-      rgba(15, 21, 31, 0.06) 16deg 30deg
-    );
-  box-shadow:
-    inset 0 0 26px rgba(136, 192, 208, 0.2),
-    0 0 28px rgba(136, 192, 208, 0.2);
-  filter: saturate(1.12);
-  z-index: 1;
-  animation: turboSpin 0.95s linear infinite;
-}
-
-.turbo-runner::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 24%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 88, 97, 0.95) 0 30%,
-    rgba(255, 88, 97, 0.26) 58%,
-    transparent 60%
-  );
-  box-shadow:
-    0 0 26px rgba(255, 88, 97, 0.62),
-    inset 0 0 10px rgba(255, 255, 255, 0.34);
-  z-index: 2;
-  animation: turboPulse 1.25s ease-in-out infinite;
-}
-
 .box-pr-logo {
   max-width: 100%;
   height: auto;
@@ -2354,46 +2283,6 @@ input[type='text'] {
 .pulse:hover {
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
   transform: scale(1.05) translateZ(0);
-}
-
-@keyframes turboSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes turboPulse {
-  0%,
-  100% {
-    transform: scale(0.92);
-    opacity: 0.82;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-}
-
-@keyframes turboFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .turbo-runner,
-  .turbo-runner::before,
-  .turbo-runner::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-  }
 }
 
 /* Glowing Button Animation */
@@ -3006,6 +2895,11 @@ body {
   padding: clamp(20px, 3vw, 40px);
   gap: clamp(24px, 6vw, 72px);
   margin: 24px auto 36px;
+}
+
+.surf-compact {
+  max-width: 980px;
+  padding: clamp(14px, 2.2vw, 26px);
 }
 
 .box-hero {
