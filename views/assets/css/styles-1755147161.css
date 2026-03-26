@@ -148,6 +148,9 @@ html {
   text-wrap: balance;
   word-break: normal;
   overflow-wrap: break-word;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
 }
 
 body {
@@ -183,6 +186,9 @@ h6,
 input,
 select {
   color: var(--html-color, white);
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
 }
 
 h1,
